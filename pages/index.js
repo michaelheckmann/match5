@@ -2,12 +2,21 @@ import Head from "next/head";
 import Router from "next/router";
 import Cookies from "universal-cookie";
 import { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
 import Modal from "react-modal";
 import React from "react";
 import { animalNames } from "../utilities/constants";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../utilities/toast";
+import Loading from "../components/Loading";
 
 Modal.setAppElement("#modal-root");
+
+const CloseButton = ({ closeToast }) => (
+  <div onClick={closeToast} className="pr-1 text-red-500">
+    ✕
+  </div>
+);
 
 export default function Home({ isAuthenticated }) {
   // First check if the user has entered the correct password
@@ -19,6 +28,7 @@ export default function Home({ isAuthenticated }) {
   const [joinRoomName, setJoinRoomName] = useState("");
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
   const [joinModalIsOpen, setJoinModalIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleChange(e) {
     if (e.target.name === "playerName") setPlayerName(e.target.value);
@@ -26,8 +36,16 @@ export default function Home({ isAuthenticated }) {
   }
 
   async function createRoom() {
+    setIsLoading(true);
+
     // No player name
-    if (!playerName) return;
+    if (!playerName) {
+      setIsLoading(false);
+      return showToast(
+        "Gebe einen Spielernamen ein, um den Raum zu erstellen",
+        "error"
+      );
+    }
 
     let roomName;
     let maxTries = 20;
@@ -39,8 +57,8 @@ export default function Home({ isAuthenticated }) {
         animalNames[Math.floor(Math.random() * animalNames.length)];
 
       // Check if room exists
-      const res = await fetch("api/getRoom", {
-        body: JSON.stringify({ roomName: "Fuchs" }),
+      const res = await fetch("api/room/getRoom", {
+        body: JSON.stringify({ roomName: animal }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -59,8 +77,8 @@ export default function Home({ isAuthenticated }) {
 
       // If room has been created more than 24 hours ago, delete it
       if (now - createdDate > 86400000) {
-        const res = await fetch("api/destroyRoom", {
-          body: JSON.stringify({ roomRefId: json.data[0].ref.id }),
+        const res = await fetch("api/room/deleteRoom", {
+          body: JSON.stringify({ roomRefId: json.data[0].ref["@ref"].id }),
           headers: {
             "Content-Type": "application/json",
           },
@@ -74,10 +92,16 @@ export default function Home({ isAuthenticated }) {
       c++;
     }
     // No room available
-    if (c === maxTries) return;
+    if (c === maxTries) {
+      setIsLoading(false);
+      return showToast(
+        "Kein Raum verfügbar. Probiere es später erneut",
+        "error"
+      );
+    }
 
     // Create room
-    const res = await fetch("api/createRoom", {
+    await fetch("api/room/createRoom", {
       body: JSON.stringify({
         roomName: roomName,
         playerName: playerName,
@@ -95,19 +119,32 @@ export default function Home({ isAuthenticated }) {
       path: "/",
     });
 
-    console.log(playerName, roomName);
-
     // Reroute to room
     Router.push(`/${roomName}`);
+    setIsLoading(false);
   }
 
   async function joinRoom() {
-    // No player name
-    if (!playerName) return;
-    // No room name
-    if (!joinRoomName) return;
+    setIsLoading(true);
 
-    const res = await fetch("api/getRoom", {
+    // No player name
+    if (!playerName) {
+      setIsLoading(false);
+      return showToast(
+        "Gebe einen Spielernamen ein, um dem Raum beizutreten",
+        "error"
+      );
+    }
+    // No room name
+    if (!joinRoomName) {
+      setIsLoading(false);
+      return showToast(
+        "Gebe den Namen des Raum ein, dem du beitreten möchtest",
+        "error"
+      );
+    }
+
+    const res = await fetch("api/room/getRoom", {
       body: JSON.stringify({ roomName: joinRoomName }),
       headers: {
         "Content-Type": "application/json",
@@ -117,10 +154,19 @@ export default function Home({ isAuthenticated }) {
     const json = await res.json();
 
     // No room found
-    if (json.data.length === 0) return;
+    if (json.data.length === 0) {
+      setIsLoading(false);
+      return showToast("Kein Raum mit diesem Namen gefunden", "error");
+    }
 
     // Player name is already in
-    if (json.data[0].data.players.some((p) => p === playerName)) return;
+    if (json.data[0].data.players.some((p) => p === playerName)) {
+      setIsLoading(false);
+      return showToast(
+        "Es existiert schon ein Spieler mit dem Namen in diesem Raum. Wähle einen anderen Namen",
+        "error"
+      );
+    }
 
     // Save player name to cookies
     const cookies = new Cookies();
@@ -130,86 +176,169 @@ export default function Home({ isAuthenticated }) {
 
     // Reroute to room
     Router.push(`/${joinRoomName}`);
+    setIsLoading(false);
   }
 
   return (
     <div>
       <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
+        <title>Match5: Lobby</title>
+        <meta name="description" content="Spiellobby" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="">
-        <button onClick={() => setCreateModalIsOpen(true)}>
-          Raum erstellen
-        </button>
-        <button onClick={() => setJoinModalIsOpen(true)}>Raum beitreten</button>
+
+      <div className="relative flex items-center justify-center w-screen h-screen text-gray-700 bg-gray-100">
+        <div className="">
+          <h1 className="absolute top-28 left-1/2 -ml-[200px] w-[400px] font-bold text-3xl text-center text-fuchsia-600 z-10">
+            Match 5: Lobby
+          </h1>
+          <svg
+            className="absolute z-0 rotate-90 top-28 -translate-y-28 stroke-fuchsia-500 fill-transparent"
+            xmlns="http://www.w3.org/2000/svg"
+            width="300"
+            height="300"
+            viewBox="0 0 600 600"
+          >
+            <g transform="translate(300,300)">
+              <path
+                d="M108.7,-102.8C139.7,-47.8,163,-2.6,157.3,41.4C151.6,85.4,117,128.3,71.9,150.5C26.8,172.7,-28.9,174.2,-85.4,155.4C-141.9,136.6,-199.1,97.6,-217.2,42.6C-235.3,-12.3,-214.2,-83.2,-171.5,-140.9C-128.7,-198.7,-64.4,-243.3,-12.8,-233.2C38.8,-223,77.7,-157.9,108.7,-102.8Z"
+                fill=""
+              />
+            </g>
+          </svg>
+
+          <Loading isLoading={isLoading} />
+
+          {!isLoading && (
+            <div className="flex items-center justify-center gap-10">
+              <button
+                onClick={() => setCreateModalIsOpen(true)}
+                className="p-4 font-bold transition bg-white rounded-lg shadow hover:scale-105 hover:-rotate-3 hover:text-fuchsia-500"
+              >
+                Raum erstellen
+              </button>
+              <button
+                onClick={() => setJoinModalIsOpen(true)}
+                className="p-4 font-bold transition bg-white rounded-lg shadow hover:scale-105 hover:rotate-3 hover:text-fuchsia-500"
+              >
+                Raum beitreten
+              </button>
+            </div>
+          )}
+        </div>
 
         <Modal
           isOpen={createModalIsOpen}
           onRequestClose={() => setCreateModalIsOpen(false)}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-11/12 md:max-w-md rounded-lg shadow-lg z-50 overflow-y-auto p-5"
-          overlayClassName="bg-gray-500/25 fixed inset-0 z-40"
+          className="absolute transition min-h-[200px] z-50 w-11/12 p-5 overflow-y-auto text-gray-700 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg top-1/2 left-1/2 md:max-w-md"
+          overlayClassName="bg-gray-500/10 fixed inset-0 z-40"
         >
-          <div className="font-bold">Raum erstellen</div>
-          <button onClick={() => setCreateModalIsOpen(false)}>close</button>
-          <form>
-            <div className="relative p-6 flex-auto">
-              <p className="my-4 text-blueGray-500 text-lg leading-relaxed">
-                Wie ist dein Name?
-              </p>
-              <input
-                type="text"
-                value={playerName}
-                onChange={handleChange}
-                autoFocus={true}
-                name="playerName"
-                className="border"
-              />
-            </div>
-          </form>
-          <button onClick={createRoom}>erstellen</button>
+          <div className="flex items-start justify-between w-full ">
+            <div className="block mb-4 text-lg font-bold">Raum erstellen</div>
+            <button
+              onClick={() => setCreateModalIsOpen(false)}
+              className="transition hover:rotate-180"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="mt-8">
+            <Loading isLoading={isLoading} />
+          </div>
+          {!isLoading && (
+            <>
+              {" "}
+              <form>
+                <p className="mb-3">Wie ist dein Name?</p>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={handleChange}
+                  autoFocus={true}
+                  autoComplete="off"
+                  className="block w-full h-10 pr-12 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
+                  name="playerName"
+                />
+              </form>
+              <button
+                onClick={createRoom}
+                className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
+              >
+                Erstellen
+              </button>{" "}
+            </>
+          )}
         </Modal>
 
         <Modal
           isOpen={joinModalIsOpen}
           onRequestClose={() => setJoinModalIsOpen(false)}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-11/12 md:max-w-md rounded-lg shadow-lg z-50 overflow-y-auto p-5"
-          overlayClassName="bg-gray-500/25 fixed inset-0 z-40"
+          className="absolute transition min-h-[200px] z-50 w-11/12 p-5 overflow-y-auto text-gray-700 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg top-1/2 left-1/2 md:max-w-md"
+          overlayClassName="bg-gray-500/10 fixed inset-0 z-40"
         >
-          <div className="font-bold">Raum beitreten</div>
-          <button onClick={() => setJoinModalIsOpen(false)}>close</button>
-          <form>
-            <div className="relative p-6 flex-auto">
-              <p className="my-4 text-blueGray-500 text-lg leading-relaxed">
-                Wie ist dein Name?
-              </p>
-              <input
-                type="text"
-                value={playerName}
-                onChange={handleChange}
-                autoFocus={true}
-                name="playerName"
-                className="border"
-              />
-            </div>
-            <div className="relative p-6 flex-auto">
-              <p className="my-4 text-blueGray-500 text-lg leading-relaxed">
-                Wie ist die Raum Nummer?
-              </p>
-              <input
-                type="text"
-                value={joinRoomName}
-                onChange={handleChange}
-                autoFocus={true}
-                name="joinRoomName"
-                className="border"
-              />
-            </div>
-          </form>
-          <button onClick={joinRoom}>beitreten</button>
+          <div className="flex items-start justify-between w-full ">
+            <div className="block mb-4 text-lg font-bold">Raum beitreten</div>
+            <button
+              onClick={() => setJoinModalIsOpen(false)}
+              className="transition hover:rotate-180"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="mt-8">
+            <Loading isLoading={isLoading} />
+          </div>
+          {!isLoading && (
+            <>
+              {" "}
+              <form>
+                <p className="mb-3">Wie ist dein Name?</p>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={handleChange}
+                  autoFocus={true}
+                  name="playerName"
+                  autoComplete="off"
+                  className="block w-full h-10 pr-12 mb-8 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
+                />
+                <p className="mb-3">Wie ist der Raum Name?</p>
+                <input
+                  type="text"
+                  value={joinRoomName}
+                  onChange={handleChange}
+                  name="joinRoomName"
+                  autoComplete="off"
+                  className="block w-full h-10 pr-12 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
+                />
+              </form>
+              <button
+                onClick={joinRoom}
+                className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
+              >
+                Beitreten
+              </button>{" "}
+            </>
+          )}
         </Modal>
       </div>
+
+      <ToastContainer
+        toastClassName={() =>
+          "relative flex justify-between p-1 rounded-lg overflow-hidden text-red-400 bg-red-100 border border-red-500 shadow-lg mt-3"
+        }
+        bodyClassName={() => "flex text-sm font-semibold block p-3 w-full"}
+        position="bottom-center"
+        autoClose={10000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable={false}
+        pauseOnHover={false}
+        closeButton={CloseButton}
+      />
     </div>
   );
 }

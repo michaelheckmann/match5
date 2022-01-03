@@ -1,5 +1,5 @@
 export default function handler(req, res) {
-  const { client, q } = require("../../utilities/db");
+  const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Delete(q.Ref(q.Collection("rooms"), req.body.roomRefId))
   );

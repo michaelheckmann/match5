@@ -1,11 +1,14 @@
 export default function handler(req, res) {
-  const { client, q } = require("../../utilities/db");
+  const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Create(q.Collection("rooms"), {
       data: {
         name: req.body.roomName,
         players: [req.body.playerName],
         host: req.body.playerName,
+        gameState: "lobby",
+        roundOneCategories: [],
+        roundTwoCategories: [],
       },
     })
   );
