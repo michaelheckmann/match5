@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { emojis } from "../../utilities/constants";
 import Loading from "../Loading";
+import getEmoji from "../../utilities/getEmoji";
+import Image from "next/image";
+import { useRouter } from "next/router";
 
-const getEmoji = (name) => {
-  let s = 0;
-  Array(name.length)
-    .fill()
-    .forEach((_, i) => {
-      s += name.charCodeAt(i);
-    });
-  return emojis[s % emojis.length];
-};
-
-export default function GameEnd({ players, userName, roomName, roomRefId }) {
+export default function GameEnd({
+  players,
+  userName,
+  roomName,
+  roomRefId,
+  isHost,
+}) {
   const [points, setPoints] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const Router = useRouter();
+
   useEffect(async () => {
     setIsLoading(true);
     const res = await fetch("api/game/getPointSummary", {
@@ -33,8 +34,13 @@ export default function GameEnd({ players, userName, roomName, roomRefId }) {
 
     json.data.forEach((pointSummary) => {
       const i = pointsLoaded.findIndex((p) => p[0] === pointSummary[0]);
-      if (i === -1) pointsLoaded.push(pointSummary);
-      else pointsLoaded[i][1] += pointSummary[1];
+      if (i === -1) {
+        pointsLoaded.push(pointSummary);
+        pointsLoaded.push(pointSummary);
+        pointsLoaded.push(pointSummary);
+        pointsLoaded.push(pointSummary);
+        pointsLoaded.push(pointSummary);
+      } else pointsLoaded[i][1] += pointSummary[1];
     });
 
     let p = pointsLoaded.sort((a, b) => {
@@ -55,11 +61,55 @@ export default function GameEnd({ players, userName, roomName, roomRefId }) {
             <div className="mb-2 font-extrabold tracking-wider uppercase text-fuchsia-600">
               Sieger
             </div>
-            <div className="flex flex-col items-center justify-center p-5 border rounded-lg shadow-md border-fuchsia-600 shadow-fuchsia-600/10">
-              {<div className="text-2xl">{getEmoji(points[0][0])}</div>}
+            <div className="relative flex flex-col items-center justify-center p-5 border rounded-lg shadow-md border-fuchsia-600 shadow-fuchsia-600/10">
+              <div className="absolute rotate-45 -top-4 -right-4">
+                <Image src="/emojis/crown.svg" width={40} height={40} />
+              </div>
+              <div className="">
+                <Image
+                  src={getEmoji(points[0][0], roomRefId)}
+                  width={50}
+                  height={50}
+                />
+              </div>
+
               <div className="font-bold">{points[0][0]}</div>
-              <div className="leading-tight">{points[0][1]} Punkte</div>
+              <div className="font-mono leading-tight text-fuchsia-600">
+                {points[0][1]} Punkte
+              </div>
             </div>
+          </div>
+          <div className="flex flex-wrap justify-between w-full mt-16 gap-x-14 gap-y-4">
+            {points.map((point, i) => {
+              if (i === 0) return;
+              return (
+                <div className="flex items-center justify-center gap-1">
+                  <div className="flex gap-1">
+                    <div className="">
+                      {i + 1}. <span>{point[0]}</span>
+                    </div>
+                    <div className="pt-[2px]">
+                      <Image
+                        src={getEmoji(point[0], roomRefId)}
+                        width={18}
+                        height={18}
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-1 font-mono font-semibold leading-tight tracking-tight text-fuchsia-600">
+                    {point[1]} Punkte
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-end w-full h-full">
+            <button
+              className="px-5 py-2 mt-8 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => Router.push("/")}
+            >
+              Zurück zur Lobby
+            </button>
           </div>
         </div>
       )}

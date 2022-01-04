@@ -23,7 +23,7 @@ export default function Action({
   round,
   categories,
 }) {
-  const [intervalCounter, setIntervalCounter] = useState(300);
+  const [intervalCounter, setIntervalCounter] = useState(30);
   const [inputs, setInputs] = useState(Array(10).fill(""));
   const [isLoading, setIsLoading] = useState(false);
 
@@ -124,38 +124,45 @@ export default function Action({
   }
 
   return (
-    <div className="flex flex-col items-center justify-start w-full h-full">
-      {/* Countdown Widget */}
-      <div
-        className={
-          (intervalCounter <= 10 && intervalCounter % 2 !== 0
-            ? "border-red-300 text-red-500 bg-red-200"
-            : "") +
-          (intervalCounter <= 10 && intervalCounter % 2 === 0
-            ? "border-red-400 text-red-600 bg-red-300"
-            : "") +
-          " px-4 py-3 font-mono text-2xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm mt-14 ml-3 self-start"
-        }
-      >
-        {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
-        {(intervalCounter % 60).toString().padStart(2, "0")}
-      </div>
+    <div className="flex flex-col items-center justify-start mt-[104px] w-full h-full">
+      <div className="grid w-full grid-cols-3 px-3">
+        {/* Countdown Widget */}
+        <div className="flex items-start justify-start flex-grow">
+          <div
+            className={
+              (intervalCounter <= 10 && intervalCounter % 2 !== 0
+                ? "border-red-300 text-red-500 bg-red-200"
+                : "") +
+              (intervalCounter <= 10 && intervalCounter % 2 === 0
+                ? "border-red-400 text-red-600 bg-red-300"
+                : "") +
+              " px-4 py-3 font-mono text-2xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm"
+            }
+          >
+            {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
+            {(intervalCounter % 60).toString().padStart(2, "0")}
+          </div>
+        </div>
 
-      {/* Header Line Categories */}
-      <div className="flex flex-wrap justify-center max-w-lg gap-5 mt-5">
-        {categories.map((c, i) => {
-          return (
-            <div
-              key={i}
-              className={
-                catColorMap[i] +
-                " rounded shadow-sm border text-center px-2 flex gap-1 items-center"
-              }
-            >
-              {categoryIcons[c]} {c}
-            </div>
-          );
-        })}
+        {/* Header Line Categories */}
+        <div className="flex flex-wrap justify-center max-w-lg gap-5">
+          {categories.map((c, i) => {
+            return (
+              <div
+                key={i}
+                className={
+                  catColorMap[i] +
+                  " rounded shadow-sm border text-center px-2 flex gap-1 items-center"
+                }
+              >
+                {categoryIcons[c]} {c}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Space for center alignment */}
+        <div className="flex-grow"></div>
       </div>
 
       <Loading isLoading={isLoading} />
@@ -188,6 +195,8 @@ export default function Action({
               </div>
             );
           })}
+          {/* For Tailwind JIT */}
+          <div className="hidden text-slate-500 text-amber-500"></div>
         </div>
       )}
     </div>

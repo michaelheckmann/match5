@@ -2,20 +2,11 @@ import React, { useEffect, useState } from "react";
 import {
   categoryIcons,
   combinations,
-  emojis,
   colorNumberMap,
 } from "../../utilities/constants";
 import Loading from "../Loading";
-
-const getEmoji = (name) => {
-  let s = 0;
-  Array(name.length)
-    .fill()
-    .forEach((_, i) => {
-      s += name.charCodeAt(i);
-    });
-  return name + " " + emojis[s % emojis.length];
-};
+import getEmoji from "../../utilities/getEmoji";
+import Image from "next/image";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
@@ -33,6 +24,7 @@ export default function Poll({
   round,
   categories,
   channel,
+  isHost,
 }) {
   const [inputSets, setInputSets] = useState([]);
   const [inputSetsIds, setInputSetsIds] = useState({});
@@ -113,6 +105,7 @@ export default function Poll({
     setIsLoading(false);
   }, []);
 
+  //   REFACTOR THIS
   useEffect(() => {
     if (channel) {
       channel.bind("triggerSelectNot", (triggerSelectData) => {
@@ -159,11 +152,34 @@ export default function Poll({
 
     await fetch("api/game/submitPoll", {
       body: JSON.stringify({
-        pageNumber: nextPageNumber,
+        pollPage: nextPageNumber,
         userName: userName,
         pollResults: pollResults,
         inputSetsIds: inputSetsIds,
         roomName: roomName,
+        roomRefId: roomRefId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    setIsLoading(false);
+  }
+
+  async function prevPage() {
+    setIsLoading(true);
+    let nextPageNumber = pageNumber - 1;
+    setPageNumber(nextPageNumber);
+
+    await fetch("api/game/submitPoll", {
+      body: JSON.stringify({
+        pollPage: nextPageNumber,
+        userName: userName,
+        pollResults: pollResults,
+        inputSetsIds: inputSetsIds,
+        roomName: roomName,
+        roomRefId: roomRefId,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -229,10 +245,16 @@ export default function Poll({
   }
 
   return (
-    <div className="flex items-center justify-center w-full h-full">
-      <Loading isLoading={isLoading} />
+    <div className="flex items-start justify-start pt-[104px] w-full h-full">
+      {isLoading && (
+        <div className="flex items-start justify-center w-full h-full mt-10">
+          <div className="flex justify-center items-center p-4 mx-5 min-h-[400px] w-full max-w-[700px] text-gray-700 bg-slate-100 border border-slate-300 rounded-lg shadow-lg">
+            <Loading isLoading={isLoading} />
+          </div>
+        </div>
+      )}
       {!isLoading && (
-        <div className="flex items-center justify-center w-full h-full pt-24 pb-14">
+        <div className="flex items-start justify-center w-full h-full mt-10">
           {!showResultScreen &&
             inputSets.map((inputSet, i) => {
               if (i !== pageNumber) return null;
@@ -275,8 +297,15 @@ export default function Poll({
                         className="flex items-center justify-between w-full mb-5"
                         key={player}
                       >
-                        <div className="w-48 mr-4 font-semibold break-all">
-                          {getEmoji(player)}
+                        <div className="flex items-center justify-start w-48 gap-1 mr-4 font-semibold break-all">
+                          {player}
+                          <div className="">
+                            <Image
+                              src={getEmoji(player, roomRefId)}
+                              width={18}
+                              height={18}
+                            />
+                          </div>
                         </div>
                         <div className="flex w-full">{inputSet[player]}</div>
                         <div className="text-base text-gray-700 rounded bg-slate-200 ">
@@ -295,10 +324,21 @@ export default function Poll({
                       </div>
                     );
                   })}
-                  <div className="flex items-end justify-end w-full h-full mt-auto">
+
+                  <div className="flex items-end justify-end w-full h-full gap-5 mt-auto">
+                    {pageNumber !== 0 && (
+                      <button
+                        disabled={!isHost}
+                        onClick={prevPage}
+                        className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Zurück
+                      </button>
+                    )}
                     <button
+                      disabled={!isHost}
                       onClick={nextPage}
-                      className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                      className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Weiter
                     </button>
@@ -314,7 +354,13 @@ export default function Poll({
               <div className="flex justify-between w-full px-2 pb-2 mb-5 border-b-2 border-slate-300">
                 <div className="font-bold">Spieler</div>
                 {["roundOne", "roundTwo"].includes(round) && (
-                  <div className="font-mono font-semibold text-fuchsia-500">
+                  <div
+                    className={
+                      (round === "roundOne"
+                        ? "text-fuchsia-500 "
+                        : "text-fuchsia-300 ") + "font-mono font-semibold"
+                    }
+                  >
                     Runde 1
                   </div>
                 )}
@@ -332,13 +378,22 @@ export default function Poll({
                     key={pointSummary[0]}
                     className="flex justify-between w-full mb-5"
                   >
-                    <div className="font-bold">
-                      {rank + 1}. {getEmoji(pointSummary[0])}
+                    <div className="flex items-center justify-start gap-1 font-bold">
+                      <div className="">
+                        {rank + 1}. {pointSummary[0]}{" "}
+                      </div>{" "}
+                      <div className="pt-[3px]">
+                        <Image
+                          src={getEmoji(pointSummary[0], roomRefId)}
+                          width={18}
+                          height={18}
+                        />
+                      </div>
                     </div>
 
                     {/* Point summary round one */}
                     {round !== "roundOne" && (
-                      <div className="font-mono font-semibold text-fuchsia-500">
+                      <div className="font-mono font-semibold text-fuchsia-300">
                         {roundOnePointSummarys[pointSummary[0]]} Punkte
                       </div>
                     )}
@@ -352,7 +407,8 @@ export default function Poll({
               })}
               <div className="flex items-end justify-end w-full h-full mt-auto">
                 <button
-                  className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  disabled={!isHost}
+                  className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={newRound}
                 >
                   {round !== "roundTwo" ? "Nächste Runde" : "Abschließen"}

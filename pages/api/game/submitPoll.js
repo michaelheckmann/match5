@@ -19,7 +19,7 @@ export default function handler(req, res) {
     channels.trigger(
       req.body.roomName,
       "pollSubmitted",
-      { pageNumber: req.body.pageNumber, userName: req.body.userName },
+      { pollPage: req.body.pollPage, userName: req.body.userName },
       () => {
         res.status(200).end("sent event successfully");
       }
@@ -30,24 +30,36 @@ export default function handler(req, res) {
   }
 
   const { client, q } = require("../../../utilities/db");
+  let promises = [];
 
-  for (const [player, inputSetsId] of Object.entries(req.body.inputSetsIds)) {
-    const faunaQuery = client.query(
-      q.Update(q.Ref(q.Collection("inputSets"), inputSetsId), {
+  promises.push(
+    client.query(
+      q.Update(q.Ref(q.Collection("rooms"), req.body.roomRefId), {
         data: {
-          pollResults: req.body.pollResults[player],
+          pollPage: req.body.pollPage,
         },
       })
+    )
+  );
+  for (const [player, inputSetsId] of Object.entries(req.body.inputSetsIds)) {
+    promises.push(
+      client.query(
+        q.Update(q.Ref(q.Collection("inputSets"), inputSetsId), {
+          data: {
+            pollResults: req.body.pollResults[player],
+          },
+        })
+      )
     );
-
-    faunaQuery
-      .then(() => {
-        res.status(200);
-        res.end();
-      })
-      .catch(() => {
-        res.status(500);
-        res.end();
-      });
   }
+
+  Promise.all(promises)
+    .then(() => {
+      res.status(200);
+      res.end();
+    })
+    .catch(() => {
+      res.status(500);
+      res.end();
+    });
 }

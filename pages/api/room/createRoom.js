@@ -9,6 +9,7 @@ export default function handler(req, res) {
         gameState: "lobby",
         roundOneCategories: [],
         roundTwoCategories: [],
+        pollPage: 0,
       },
     })
   );

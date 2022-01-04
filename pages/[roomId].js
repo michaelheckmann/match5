@@ -1,10 +1,10 @@
-import React, { useRef } from "react";
+import React from "react";
 import Cookies from "universal-cookie";
 import { useState, useEffect } from "react";
 import { getRoom } from "./api/room/getRoom";
 import Router from "next/router";
 import Pusher from "pusher-js";
-import { emojis } from "../utilities/constants";
+import getEmoji from "../utilities/getEmoji";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../utilities/toast";
@@ -15,38 +15,21 @@ import Poll from "../components/game-states/Poll";
 import GameEnd from "../components/game-states/GameEnd";
 import Head from "next/head";
 import Loading from "../components/Loading";
-
-const getEmoji = (name) => {
-  let s = 0;
-  Array(name.length)
-    .fill()
-    .forEach((_, i) => {
-      s += name.charCodeAt(i);
-    });
-  return name + " " + emojis[s % emojis.length];
-};
+import Image from "next/image";
 
 const displayTitle = (gameState) => {
-  switch (gameState) {
-    case "lobby":
-      return "Lobby";
-    case "roundOneStart":
-      return "Runde 1: Ziehe die Kategorien";
-    case "roundTwoStart":
-      return "Runde 2: Ziehe die Kategorien";
-    case "roundOneActionStart":
-      return "Runde 1: Finde passende Wörter";
-    case "roundTwoActionStart":
-      return "Runde 2: Finde passende Wörter";
-    case "roundOnePollStart":
-      return "Runde 1: Bewerte die Wörter";
-    case "roundTwoPollStart":
-      return "Runde 2: Bewerte die Wörter";
-    case "gameEnd":
-      return "Spielzusammenfassung";
-    default:
-      return "";
-  }
+  let round = 0;
+  if (gameState.includes("roundOne")) round = 1;
+  else if (gameState.includes("roundTwo")) round = 2;
+
+  let title = "";
+  if (gameState.includes("lobby")) title = "Lobby";
+  else if (gameState.includes("gameEnd")) title = "Spielzusammenfassung";
+  else if (gameState.includes("ActionStart")) title = "Finde passende Wörter";
+  else if (gameState.includes("PollStart")) title = "Bewerte die Antworten";
+  else if (gameState.includes("Start")) title = "Ziehe fünf Kategorien";
+
+  return [round, title];
 };
 
 const CloseButton = ({ closeToast }) => (
@@ -75,8 +58,11 @@ export default function Room({
   gameStateProp,
   roundOneCategoriesProp,
   roundTwoCategoriesProp,
+  pollPageProp,
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isHost, setIsHost] = useState(false);
+
   const [players, setPlayers] = useState(playerNamesProp);
   const [gameState, setGameState] = useState(gameStateProp);
   const [roundOneCategories, setRoundOneCategories] = useState(
@@ -85,7 +71,7 @@ export default function Room({
   const [roundTwoCategories, setRoundTwoCategories] = useState(
     roundTwoCategoriesProp
   );
-  const channelRef = useRef(null);
+  const [pollPage, setPollPage] = useState(pollPageProp);
 
   useEffect(async () => {
     setIsLoading(true);
@@ -101,14 +87,14 @@ export default function Room({
       Router.push("/");
     }
 
+    if (userNameProp === hostNameProp) setIsHost(true);
+
     // Conig the Pusher channels
     let channels = new Pusher("e873b2def22638cce881", {
       cluster: "eu",
     });
 
     let channel = channels.subscribe(roomNameProp);
-    // To pass on to the poll component
-    channelRef.current = channel;
 
     channel.bind("playerJoined", (newPlayer) => {
       if (newPlayer === userNameProp) return;
@@ -181,6 +167,11 @@ export default function Room({
       }
     });
 
+    channel.bind("pollSubmitted", (pollSubmittedData) => {
+      if (pollSubmittedData.userName === userNameProp) return;
+      setPollPage(pollSubmittedData.pollPage);
+    });
+
     // Wait until the subscription has succeeded
     channel.bind("pusher:subscription_succeeded", async () => {
       // If the user has not created the room, add him to the players
@@ -199,9 +190,11 @@ export default function Room({
         });
       }
     });
+
     channel.bind("pusher:subscription_error", (error) => {
       console.error(error);
     });
+
     setIsLoading(false);
 
     return () => {
@@ -221,19 +214,37 @@ export default function Room({
 
       {/* Header */}
       <div className="z-50 flex items-start justify-between w-full p-4">
-        <div className="">
-          <span className="font-bold">Raum:</span> {roomNameProp}
+        <div className="flex flex-col">
+          <div className="">
+            <span className="font-bold">Raum:</span> {roomNameProp}
+          </div>
+          <div className="">
+            <span className="font-bold">Spielleiter:</span> {hostNameProp}
+          </div>
+          {displayTitle(gameState)[0] > 0 && (
+            <div className="">
+              <span className="font-bold">Runde:</span>{" "}
+              {displayTitle(gameState)[0]}
+            </div>
+          )}
         </div>
         <div className="font-bold text-xl absolute top-6 text-center left-1/2 w-[400px] -ml-[200px]">
-          {displayTitle(gameState)}
+          {displayTitle(gameState)[1]}
         </div>
         <div className="flex flex-wrap items-start justify-end max-w-md gap-1">
           {players.map((p) => (
             <div
-              className="px-3 py-2 text-sm font-medium leading-tight text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm grow-0"
+              className="flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium leading-tight text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm grow-0"
               key={p}
             >
-              {getEmoji(p)}
+              {p}
+              <div className="pt-[2px]">
+                <Image
+                  src={getEmoji(p, roomRefIdProp)}
+                  width={18}
+                  height={18}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -250,6 +261,7 @@ export default function Room({
               userName={userNameProp}
               roomName={roomNameProp}
               roomRefId={roomRefIdProp}
+              isHost={isHost}
             />
           )}
 
@@ -263,6 +275,7 @@ export default function Room({
               roomRefId={roomRefIdProp}
               round="roundOne"
               categoriesProp={roundOneCategories}
+              isHost={isHost}
             />
           )}
 
@@ -274,6 +287,7 @@ export default function Room({
               roomRefId={roomRefIdProp}
               round="roundOne"
               categories={roundOneCategories}
+              isHost={isHost}
             />
           )}
 
@@ -285,7 +299,8 @@ export default function Room({
               roomRefId={roomRefIdProp}
               round="roundOne"
               categories={roundOneCategories}
-              channel={channelRef.current}
+              pollPage={pollPage}
+              isHost={isHost}
             />
           )}
 
@@ -299,6 +314,7 @@ export default function Room({
               roomRefId={roomRefIdProp}
               round="roundTwo"
               categoriesProp={roundTwoCategories}
+              isHost={isHost}
             />
           )}
 
@@ -310,6 +326,7 @@ export default function Room({
               roomRefId={roomRefIdProp}
               round="roundTwo"
               categories={roundTwoCategories}
+              isHost={isHost}
             />
           )}
 
@@ -321,7 +338,8 @@ export default function Room({
               roomRefId={roomRefIdProp}
               round="roundTwo"
               categories={roundTwoCategories}
-              channel={channelRef.current}
+              pollPage={pollPage}
+              isHost={isHost}
             />
           )}
 
@@ -331,6 +349,7 @@ export default function Room({
               userName={userNameProp}
               roomName={roomNameProp}
               roomRefId={roomRefIdProp}
+              isHost={isHost}
             />
           )}
         </div>
@@ -358,11 +377,13 @@ export default function Room({
 }
 
 export async function getServerSideProps(context) {
-  // Check if room exists
-  const res = await getRoom(context.params.roomId);
-  if (!res) return { redirect: { destination: "/" } };
+  // Get the room data
+  const resRoom = await getRoom(context.params.roomId);
 
-  const rooms = res.data;
+  // Check if room exists
+  if (!resRoom) return { redirect: { destination: "/" } };
+
+  const rooms = resRoom.data;
   if (rooms.length === 0) return { redirect: { destination: "/" } };
 
   const cookies = new Cookies(context.req.headers.cookie);
@@ -372,6 +393,7 @@ export async function getServerSideProps(context) {
 
   const room = rooms[0].data;
   const refId = rooms[0].ref.id;
+
   return {
     props: {
       roomNameProp: room.name,
@@ -381,7 +403,7 @@ export async function getServerSideProps(context) {
       userNameProp: userName,
       gameStateProp: room.gameState,
       roundOneCategoriesProp: room.roundOneCategories,
-      roundTwoCategoriesProp: room.roundTwoCategories,
+      pollPageProp: room.pollPage,
     }, // will be passed to the page component as props
   };
 }

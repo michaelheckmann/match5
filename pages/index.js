@@ -120,8 +120,9 @@ export default function Home({ isAuthenticated }) {
     });
 
     // Reroute to room
-    Router.push(`/${roomName}`);
-    setIsLoading(false);
+    Router.push(`/${roomName}`).then(() => {
+      setIsLoading(false);
+    });
   }
 
   async function joinRoom() {
@@ -175,8 +176,9 @@ export default function Home({ isAuthenticated }) {
     });
 
     // Reroute to room
-    Router.push(`/${joinRoomName}`);
-    setIsLoading(false);
+    Router.push(`/${joinRoomName}`).then(() => {
+      setIsLoading(false);
+    });
   }
 
   return (

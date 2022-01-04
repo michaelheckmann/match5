@@ -3,11 +3,10 @@ export default function handler(req, res) {
   const faunaQuery = client.query(
     q.Map(
       q.Paginate(
-        q.Match(
-          q.Index("findByRoomRefIdAndRound"),
+        q.Match(q.Index("findByRoomRefIdAndRound"), [
           req.body.roomRefId,
-          req.body.round
-        )
+          req.body.round,
+        ])
       ),
       q.Lambda("set", q.Get(q.Var("set")))
     )

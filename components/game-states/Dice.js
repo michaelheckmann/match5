@@ -23,6 +23,7 @@ export default function Dice({
   roomRefId,
   round,
   categoriesProp,
+  isHost,
 }) {
   const [intervalCounter, setIntervalCounter] = useState([0, 0, 0, 0, 0]);
   const [incrementCounter, setIncrementCounter] = useState(0);
@@ -32,20 +33,24 @@ export default function Dice({
 
   // Stop the counter if the categories were set via pusher
   useEffect(() => {
-    if (categoriesProp && categoriesProp.length > 0 && !showLabel)
-      stopCounter(false);
-  }, [categoriesProp, showLabel]);
+    if (!categoriesProp || categoriesProp.length === 0) startCounter();
+    if (categoriesProp && categoriesProp.length > 0) stopCounter(false);
+  }, [categoriesProp]);
 
-  // Random number generator for the categories
+  // Prevent memory leak
   useEffect(() => {
-    interval.current = setInterval(() => {
-      setIntervalCounter((c) => c.map((_) => Math.floor(Math.random() * 6)));
-      setIncrementCounter((c) => c + 0.2);
-    }, 200);
     return () => {
       clearInterval(interval.current);
     };
   }, []);
+
+  function startCounter() {
+    interval.current = setInterval(() => {
+      setIntervalCounter((c) => c.map((_) => Math.floor(Math.random() * 6)));
+      setIncrementCounter((c) => c + 0.2);
+    }, 200);
+    setShowLabel(false);
+  }
 
   async function stopCounter(makeRequest = true) {
     clearInterval(interval.current);
@@ -94,6 +99,22 @@ export default function Dice({
     setIsLoading(false);
   }
 
+  async function rollDice() {
+    await fetch("api/game/setCategories", {
+      body: JSON.stringify({
+        round: round,
+        categories: [],
+        userName: userName,
+        roomRefId: roomRefId,
+        roomName: roomName,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+  }
+
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
       <Loading isLoading={isLoading} />
@@ -136,8 +157,8 @@ export default function Dice({
                       catColorMap[i] +
                       (Math.floor(incrementCounter) % 2 ? " " : " -") +
                       "rotate-" +
-                      (incrementCounter > 0 ? "[6deg]" : "[0deg]") +
-                      " flex items-center transition-all ease-in-out duration-300 text-3xl justify-center w-24 h-24 font-bold rounded shadow-md shrink-0"
+                      (incrementCounter > 0 ? "6" : "0") +
+                      " flex items-center transition-all ease-in-out duration-300 text-4xl justify-center w-24 h-24 font-bold rounded shadow-md shrink-0"
                     }
                   >
                     {/* Show either the random values or the values from Pusher */}
@@ -205,24 +226,37 @@ export default function Dice({
                 </div>
               );
             })}
+          {/* FOR TAILWIND JIT */}
+          <div className="hidden rotate-6 -rotate-6"></div>
         </div>
       )}
 
       {!isLoading && !showLabel && categoriesProp.length === 0 && (
         <button
           onClick={stopCounter}
-          className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
+          disabled={!isHost}
+          className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Anhalten
         </button>
       )}
       {!isLoading && showLabel && (
-        <button
-          onClick={startRound}
-          className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
-        >
-          Runde starten
-        </button>
+        <div className="flex gap-5">
+          <button
+            onClick={() => rollDice(true)}
+            disabled={!isHost}
+            className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Nochmal würfeln
+          </button>
+          <button
+            onClick={startRound}
+            disabled={!isHost}
+            className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Runde starten
+          </button>
+        </div>
       )}
     </div>
   );
