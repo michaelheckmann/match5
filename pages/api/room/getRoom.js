@@ -6,12 +6,16 @@ export async function getRoom(roomName) {
       q.Lambda("room", q.Get(q.Var("room")))
     )
   );
-  return faunaQuery.then((response) => {
+
+  try {
+    const response = await faunaQuery;
     return response;
-  });
+  } catch (error) {
+    return error;
+  }
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Map(
@@ -20,13 +24,10 @@ export default function handler(req, res) {
     )
   );
 
-  faunaQuery
-    .then((response) => {
-      res.status(200);
-      return res.json(response);
-    })
-    .catch((error) => {
-      res.status(500);
-      return res.send(error);
-    });
+  try {
+    const response = await faunaQuery;
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
 }

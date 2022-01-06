@@ -18,8 +18,8 @@ export default async function handler(req, res) {
   try {
     await channels.trigger(
       req.body.roomName,
-      "gameStateChanged",
-      { state: req.body.state, userName: req.body.userName },
+      "pageChanged",
+      { pollPage: req.body.pollPage, userName: req.body.userName },
       () => {
         res.status(200).end("sent event successfully");
       }
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   const faunaQuery = client.query(
     q.Update(q.Ref(q.Collection("rooms"), req.body.roomRefId), {
       data: {
-        gameState: req.body.state,
+        pollPage: req.body.pollPage,
       },
     })
   );

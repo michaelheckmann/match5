@@ -4,6 +4,7 @@ import Cookies from "universal-cookie";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../utilities/toast";
+import makeRequest from "../utilities/makeRequest";
 
 const CloseButton = ({ closeToast }) => (
   <div onClick={closeToast} className="text-red-500 pr-1">
@@ -17,16 +18,8 @@ const Login = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const json = await makeRequest("auth", { password: password }, true);
 
-    const res = await fetch("api/auth", {
-      body: JSON.stringify({ password: password }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
-
-    const json = await res.json();
     if (json.authenticated) {
       const cookies = new Cookies();
       cookies.set("password", password, {

@@ -14,22 +14,15 @@ const channels = new Channels({
   cluster,
 });
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   try {
-    channels.trigger(
-      req.body.roomName,
-      "categoriesSet",
-      {
-        round: req.body.round,
-        categories: req.body.categories,
-        userName: req.body.userName,
-      },
-      () => {
-        res.status(200).end("sent event successfully");
-      }
-    );
-  } catch (e) {
-    console.log(e);
+    await channels.trigger(req.body.roomName, "categoriesSet", {
+      round: req.body.round,
+      categories: req.body.categories,
+      userName: req.body.userName,
+    });
+  } catch (error) {
+    console.log(error);
     res.status(405);
   }
 
@@ -59,13 +52,10 @@ export default function handler(req, res) {
       break;
   }
 
-  faunaQuery
-    .then((response) => {
-      res.status(200);
-      return res.json(response);
-    })
-    .catch((error) => {
-      res.status(500);
-      return res.send(error);
-    });
+  try {
+    const response = await faunaQuery;
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
 }

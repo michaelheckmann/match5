@@ -7,6 +7,7 @@ import {
 } from "../../utilities/constants";
 import { motion } from "framer-motion";
 import Loading from "../Loading";
+import makeRequest from "../../utilities/makeRequest";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200",
@@ -33,6 +34,7 @@ export default function Dice({
 
   // Stop the counter if the categories were set via pusher
   useEffect(() => {
+    console.log("CATEGORIES", categoriesProp);
     if (!categoriesProp || categoriesProp.length === 0) startCounter();
     if (categoriesProp && categoriesProp.length > 0) stopCounter(false);
   }, [categoriesProp]);
@@ -45,6 +47,7 @@ export default function Dice({
   }, []);
 
   function startCounter() {
+    console.log("START COUNTER");
     interval.current = setInterval(() => {
       setIntervalCounter((c) => c.map((_) => Math.floor(Math.random() * 6)));
       setIncrementCounter((c) => c + 0.2);
@@ -52,12 +55,12 @@ export default function Dice({
     setShowLabel(false);
   }
 
-  async function stopCounter(makeRequest = true) {
+  async function stopCounter(makeAPIRequest = true) {
     clearInterval(interval.current);
     setIncrementCounter(0);
     setShowLabel(true);
 
-    if (!makeRequest) return;
+    if (!makeAPIRequest) return;
     const newCategories = intervalCounter.map((c, i) => {
       if (round === "roundOne") {
         return roundOneCategories[i][c];
@@ -66,52 +69,41 @@ export default function Dice({
       }
     });
 
-    await fetch("api/game/setCategories", {
-      body: JSON.stringify({
-        round: round,
-        categories: newCategories,
-        userName: userName,
-        roomRefId: roomRefId,
-        roomName: roomName,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    await makeRequest("game/setCategories", {
+      round: round,
+      categories: newCategories,
+      userName: userName,
+      roomRefId: roomRefId,
+      roomName: roomName,
     });
   }
 
   async function startRound() {
     setIsLoading(true);
-    await fetch("api/game/setGameState", {
-      body: JSON.stringify({
-        roomName: roomName,
-        state:
-          round === "roundOne" ? "roundOneActionStart" : "roundTwoActionStart",
-        userName: userName,
-        roomRefId: roomRefId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+
+    await makeRequest("game/setGameState", {
+      roomName: roomName,
+      state:
+        round === "roundOne" ? "roundOneActionStart" : "roundTwoActionStart",
+      userName: userName,
+      roomRefId: roomRefId,
     });
+
     setIsLoading(false);
   }
 
+  useEffect(() => {
+    console.log("incrementCounter", incrementCounter);
+  }, [incrementCounter]);
+
   async function rollDice() {
-    await fetch("api/game/setCategories", {
-      body: JSON.stringify({
-        round: round,
-        categories: [],
-        userName: userName,
-        roomRefId: roomRefId,
-        roomName: roomName,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    console.log("ROLL DICE");
+    await makeRequest("game/setCategories", {
+      round: round,
+      categories: [],
+      userName: userName,
+      roomRefId: roomRefId,
+      roomName: roomName,
     });
   }
 
@@ -210,7 +202,7 @@ export default function Dice({
                       catColorMap[i] +
                       (Math.floor(incrementCounter) % 2 ? " " : " -") +
                       "rotate-" +
-                      (incrementCounter > 0 ? "[6deg]" : "[0deg]") +
+                      (incrementCounter > 0 ? "6" : "0") +
                       " flex items-center transition-all ease-in-out duration-300 text-3xl justify-center w-24 h-24 font-bold rounded shadow-md shrink-0"
                     }
                   >
@@ -243,7 +235,7 @@ export default function Dice({
       {!isLoading && showLabel && (
         <div className="flex gap-5">
           <button
-            onClick={() => rollDice(true)}
+            onClick={rollDice}
             disabled={!isHost}
             className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >

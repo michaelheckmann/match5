@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
-    q.Delete(q.Ref(q.Collection("rooms"), req.body.roomRefId))
+      q.Paginate(q.Match(q.Index("inputSets__roomRefId"), req.body.roomRefId))
   );
 
   try {

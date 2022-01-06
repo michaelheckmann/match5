@@ -34,6 +34,8 @@ import {
   GiPalmTree,
   GiCat,
   GiCherry,
+  GiWool,
+  GiSharkFin,
 } from "react-icons/gi";
 
 import { ImWoman, ImGift, ImMagicWand, ImScissors } from "react-icons/im";
@@ -69,6 +71,8 @@ import {
   FaCampground,
   FaCarrot,
 } from "react-icons/fa";
+
+import { MdWork } from "react-icons/md";
 
 // No diacritics allowed
 export const animalNames = [
@@ -353,7 +357,7 @@ const roundOneRed = [
   "Berühmtheit",
   "Geschenk",
   "Universum",
-  "Zauberer",
+  "Arbeit / Uni",
   "Haarig / Pelzig",
 ];
 
@@ -377,7 +381,7 @@ const roundOneBlue = [
 
 const roundOneYellow = [
   "Selten",
-  "Gesundheit",
+  "Schwimmt",
   "Groß",
   "Fliegt",
   "Stadt",
@@ -404,9 +408,9 @@ const roundTwoRed = [
 
 const roundTwoWhite = [
   "Kunst",
-  "Arzneimittel",
+  "Arzneimittel / Gesundheit",
   "Schwer",
-  "Wird warm",
+  "Hobby",
   "Lustig",
   "Feiertag",
 ];
@@ -478,7 +482,7 @@ export const categoryIcons = {
   Magisch: <ImMagicWand />,
   Gruselig: <GiPumpkinMask />,
   Kunst: <GiPaintBrush />,
-  Arzneimittel: <GiPill />,
+  "Arzneimittel / Gesundheit": <GiPill />,
   Schwer: <GiWeight />,
   "Wird warm": <BsThermometerSun />,
   Lustig: <FaRegLaughBeam />,
@@ -501,6 +505,9 @@ export const categoryIcons = {
   Schwarz: <GiCat />,
   Orange: <FaCarrot />,
   Rot: <GiCherry />,
+  "Arbeit / Uni": <MdWork />,
+  Hobby: <GiWool />,
+  Schwimmt: <GiSharkFin />,
 };
 
 export const roundOneCategories = [

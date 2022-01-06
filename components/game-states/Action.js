@@ -6,6 +6,7 @@ import {
   colorNumberMap,
 } from "../../utilities/constants";
 import Loading from "../Loading";
+import makeRequest from "../../utilities/makeRequest";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
@@ -22,6 +23,7 @@ export default function Action({
   roomRefId,
   round,
   categories,
+  isHost,
 }) {
   const [intervalCounter, setIntervalCounter] = useState(30);
   const [inputs, setInputs] = useState(Array(10).fill(""));
@@ -42,42 +44,35 @@ export default function Action({
     };
   }, []);
 
-  useEffect(async () => {
+  useEffect(() => {
     // Countdown has finished
     if (intervalCounter === 0) {
       setIsLoading(true);
       clearInterval(interval.current);
-
-      await fetch("api/game/createInputSet", {
-        body: JSON.stringify({
-          roomName: roomName,
-          inputs: inputs,
-          userName: userName,
-          round: round,
-          roomRefId: roomRefId,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-
-      await fetch("api/game/setGameState", {
-        body: JSON.stringify({
-          roomName: roomName,
-          state:
-            round === "roundOne" ? "roundOnePollStart" : "roundTwoPollStart",
-          userName: userName,
-          roomRefId: roomRefId,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      setIsLoading(false);
+      handleCounterFinished();
     }
   }, [intervalCounter]);
+
+  async function handleCounterFinished() {
+    await makeRequest("game/createInputSet", {
+      roomName: roomName,
+      inputs: inputs,
+      userName: userName,
+      round: round,
+      roomRefId: roomRefId,
+    });
+
+    if (isHost) {
+      await makeRequest("game/setGameState", {
+        roomName: roomName,
+        state: round === "roundOne" ? "roundOnePollStart" : "roundTwoPollStart",
+        userName: userName,
+        roomRefId: roomRefId,
+      });
+    }
+
+    setIsLoading(false);
+  }
 
   // Change to input field
   async function handleChange(e, i) {
@@ -91,34 +86,22 @@ export default function Action({
       !nineLeftTriggered.current
     ) {
       nineLeftTriggered.current = true;
-      await fetch("api/triggerInputNot", {
-        body: JSON.stringify({
-          roomName: roomName,
-          message: "nineLeft",
-          userName: userName,
-          round: round,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      await makeRequest("triggerInputNot", {
+        roomName: roomName,
+        message: "nineLeft",
+        userName: userName,
+        round: round,
       });
     } else if (
       prevInputs.filter((i) => i === "").length === 1 &&
       !oneLeftTriggered.current
     ) {
       oneLeftTriggered.current = true;
-      await fetch("api/triggerInputNot", {
-        body: JSON.stringify({
-          roomName: roomName,
-          message: "oneLeft",
-          userName: userName,
-          round: round,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      await makeRequest("triggerInputNot", {
+        roomName: roomName,
+        message: "oneLeft",
+        userName: userName,
+        round: round,
       });
     }
   }

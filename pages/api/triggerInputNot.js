@@ -14,23 +14,19 @@ const channels = new Channels({
   cluster,
 });
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   try {
-    channels.trigger(
+    const response = await channels.trigger(
       req.body.roomName,
       "triggerInputNot",
       {
         round: req.body.round,
         message: req.body.message,
         userName: req.body.userName,
-      },
-      () => {
-        res.status(200).end("sent event successfully");
       }
     );
-  } catch (e) {
-    console.log(e);
-    res.status(405);
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).send(error);
   }
-  return;
 }

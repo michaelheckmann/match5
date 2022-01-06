@@ -14,21 +14,8 @@ const channels = new Channels({
   cluster,
 });
 
-export default function handler(req, res) {
-  try {
-    channels.trigger(
-      req.body.roomName,
-      "playerJoined",
-      req.body.userName,
-      () => {
-        res.status(200).end("sent event successfully");
-      }
-    );
-  } catch (e) {
-    console.log(e);
-    res.status(405);
-  }
-
+export default async function handler(req, res) {
+  channels.trigger(req.body.roomName, "playerJoined", req.body.userName);
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Let(
@@ -43,13 +30,10 @@ export default function handler(req, res) {
     )
   );
 
-  faunaQuery
-    .then((response) => {
-      res.status(200);
-      return res.json(response);
-    })
-    .catch((error) => {
-      res.status(500);
-      return res.send(error);
-    });
+  try {
+    const response = await faunaQuery;
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
 }

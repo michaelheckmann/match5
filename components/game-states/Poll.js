@@ -7,6 +7,7 @@ import {
 import Loading from "../Loading";
 import getEmoji from "../../utilities/getEmoji";
 import Image from "next/image";
+import makeRequest from "../../utilities/makeRequest";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
@@ -25,221 +26,203 @@ export default function Poll({
   categories,
   channel,
   isHost,
+  pollPage,
 }) {
   const [inputSets, setInputSets] = useState([]);
-  const [inputSetsIds, setInputSetsIds] = useState({});
-  const [pollResults, setPollResults] = useState({});
-  const [pointSummarys, setPointSummarys] = useState([]);
-  const [roundOnePointSummarys, setRoundOnePointSummarys] = useState({});
-  const [pageNumber, setPageNumber] = useState(0);
+  const [inputSetIds, setInputSetIds] = useState([]);
+  const [polls, setPolls] = useState({});
+  const [pollSummarys, setPollSummarys] = useState([]);
+  const [roundOnePollSummarys, setRoundOnePollSummarys] = useState([]);
+  const [pageNumber, setPageNumber] = useState(pollPage);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   //   Get the inputs from the players
-  useEffect(async () => {
+  useEffect(() => {
     setIsLoading(true);
+    fetchData();
+  }, []);
 
-    const res = await fetch("api/game/getInputSets", {
-      body: JSON.stringify({
-        roomRefId: roomRefId,
-        round: round,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
-    const json = await res.json();
+  async function fetchData() {
+    const json = await makeRequest(
+      "game/getInputSets",
+      { roomRefId: roomRefId, round: round },
+      true
+    );
 
     // Transform into array of objects
     // Each object is one round
     // The keys of the objects are the player names
     // The values are the inputs of the players
     let transformedInputSets = Array.from({ length: 10 }, Object);
+    let inputSetIds = [];
+    let tentativePollResults = {};
     json.data.forEach((r) => {
-      // By default all answers have 2 points, or
-      // 0 points if no answer is submitted
-      let tentativePollResults = Array(10).fill(2);
+      let tentativePollResult = Array(10).fill(2);
       transformedInputSets.forEach((is, i) => {
         is[r.data.userName] = r.data.inputs[i];
-        if (!r.data.inputs[i]) tentativePollResults[i] = 0;
-
-        // IF there are already results for this qustion
-        // Use them instead
-        if (r.data.pollResults[i])
-          tentativePollResults[i] = r.data.pollResults[i];
+        if (!r.data.inputs[i]) tentativePollResult[i] = 0;
       });
 
-      setPollResults((p) => ({
-        ...p,
-        [r.data.userName]: tentativePollResults,
-      }));
-
-      // Needed for the API calls
-      setInputSetsIds((p) => ({
-        ...p,
-        [r.data.userName]: r.ref["@ref"].id,
-      }));
+      inputSetIds.push([r.data.userName, r.ref["@ref"].id]);
+      tentativePollResults[r.ref["@ref"].id] = tentativePollResult;
     });
+
     setInputSets(transformedInputSets);
+    setInputSetIds(inputSetIds);
 
-    // Fetch the results of the previous round to display everything in the table
-    if (round !== "roundOne") {
-      const resRoundOne = await fetch("api/game/getInputSets", {
-        body: JSON.stringify({
-          roomRefId: roomRefId,
-          round: "roundOne",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const jsonRoundOne = await resRoundOne.json();
-      let pollResultsRoundOne = {};
-      jsonRoundOne.data.forEach((r) => {
-        pollResultsRoundOne[r.data.userName] = r.data.pointSummary;
-      });
-      setRoundOnePointSummarys(pollResultsRoundOne);
-    }
+    const jsonPolls = await makeRequest(
+      "game/getPolls",
+      {
+        inputSetIds: inputSetIds.filter((i) => i[0] !== userName),
+        evaluator: userName,
+        tentativePollResults: tentativePollResults,
+        roomRefId: roomRefId,
+        round: round,
+      },
+      true
+    );
+
+    let transformedPolls = {};
+    jsonPolls.forEach((p) => {
+      transformedPolls[p.data.evaluated] = {
+        points: p.data.points,
+        id: p.ref["@ref"].id,
+      };
+    });
+
+    setPolls(transformedPolls);
+
+    console.log("json", json);
+    console.log("Pagenumber!!", pageNumber);
+    // console.log("transformedInputSets", transformedInputSets);
+    // console.log("inputSetIds", inputSetIds);
+    console.log("jsonPolls", jsonPolls);
+    console.log("transformedPolls", transformedPolls);
+    console.log("tentativePollResults", tentativePollResults);
+
     setIsLoading(false);
-  }, []);
+  }
 
-  //   REFACTOR THIS
+  // Keep pollPage Number and pageNumber in Sync
   useEffect(() => {
-    if (channel) {
-      channel.bind("triggerSelectNot", (triggerSelectData) => {
-        if (triggerSelectData.userName === userName) return;
-        handleSelectChange(
-          { target: { value: triggerSelectData.value } },
-          triggerSelectData.player,
-          triggerSelectData.index,
-          false
-        );
-      });
+    if (!isHost) submitPoll();
+    setPageNumber(pollPage);
+  }, [pollPage]);
 
-      channel.bind("pollSubmitted", (pollSubmittedData) => {
-        if (pollSubmittedData.pageNumber !== pageNumber)
-          setPageNumber(pollSubmittedData.pageNumber);
-      });
-    }
-  }, [channel]);
+  async function submitPoll() {
+    await makeRequest("game/submitPoll", {
+      userName: userName,
+      polls: polls,
+    });
+  }
 
   // Handle round summary
   useEffect(() => {
     if (pageNumber !== 10) return;
-    setShowResultScreen(true);
 
-    let calculatedPointSummary = [];
-    for (const [player, pollResult] of Object.entries(pollResults)) {
-      calculatedPointSummary.push([
-        player,
-        pollResult.reduce((a, b) => a + b, 0),
-      ]);
-    }
-    setPointSummarys(() =>
-      calculatedPointSummary.sort((a, b) => {
-        if (a[1] === b[1]) return 0;
-        else return a[1] > b[1] ? -1 : 1;
-      })
-    );
+    setShowResultScreen(true);
+    handleGameEndPoints();
   }, [pageNumber]);
 
-  async function nextPage() {
+  async function handleGameEndPoints() {
+    let sum = await fetchPointSummary(round);
+
+    if (round !== "roundOne") {
+      let sumRoundOne = await fetchPointSummary("roundOne", true);
+      sum = sum.map((s) => {
+        let player = s[0];
+        let pointsCurrentRound = s[1];
+        let pointsRoundOne = sumRoundOne.find((o) => o[0] === player)[1];
+        return [player, pointsCurrentRound + pointsRoundOne];
+      });
+    }
+
+    makeSetPointSummaryRequest(inputSetIds, sum);
+  }
+
+  async function makeSetPointSummaryRequest(inputSetIds, sum) {
+    // Save aggregate to DB
+    await makeRequest("game/setPointSummary", {
+      inputSetsIds: inputSetIds,
+      pointSummary: sum,
+    });
+  }
+
+  async function fetchPointSummary(roundInput, fetchParticularInput = false) {
+    const json = await makeRequest(
+      "game/getPointSummary",
+      { roomRefId: roomRefId, round: roundInput },
+      true
+    );
+
+    console.log("fetchPoints summary", json.data);
+    let summary = [];
+    json.data.forEach((d) => {
+      let i = summary.findIndex((s) => s[0] === d.evaluated);
+      if (i === -1)
+        return summary.push([
+          d.evaluated,
+          roundTo(d.points / (players.length - 1), 1),
+        ]);
+      summary[i][1] += roundTo(d.points / (players.length - 1), 1);
+    });
+    console.log("summary", summary);
+    if (fetchParticularInput && roundInput === "roundOne") {
+      setRoundOnePollSummarys(summary);
+    } else {
+      setPollSummarys(summary);
+    }
+    return summary;
+  }
+
+  function roundTo(n, digits) {
+    if (digits === undefined) {
+      digits = 0;
+    }
+
+    var multiplicator = Math.pow(10, digits);
+    n = parseFloat((n * multiplicator).toFixed(11));
+    var test = Math.round(n) / multiplicator;
+    return +test.toFixed(digits);
+  }
+
+  async function changePageNumber(nextPageNumber) {
     setIsLoading(true);
-    let nextPageNumber = pageNumber + 1;
     setPageNumber(nextPageNumber);
 
-    await fetch("api/game/submitPoll", {
-      body: JSON.stringify({
-        pollPage: nextPageNumber,
-        userName: userName,
-        pollResults: pollResults,
-        inputSetsIds: inputSetsIds,
-        roomName: roomName,
-        roomRefId: roomRefId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    await makeRequest("game/submitPoll", {
+      userName: userName,
+      polls: polls,
     });
+
+    await makeRequest("game/setPageNumber", {
+      pollPage: nextPageNumber,
+      userName: userName,
+      roomName: roomName,
+      roomRefId: roomRefId,
+    });
+
     setIsLoading(false);
   }
 
-  async function prevPage() {
-    setIsLoading(true);
-    let nextPageNumber = pageNumber - 1;
-    setPageNumber(nextPageNumber);
-
-    await fetch("api/game/submitPoll", {
-      body: JSON.stringify({
-        pollPage: nextPageNumber,
-        userName: userName,
-        pollResults: pollResults,
-        inputSetsIds: inputSetsIds,
-        roomName: roomName,
-        roomRefId: roomRefId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
-    setIsLoading(false);
-  }
-
-  async function handleSelectChange(e, player, i, apiCall = true) {
-    setPollResults((p) => {
+  async function handleSelectChange(e, player, i) {
+    if (player === userName) return;
+    setPolls((p) => {
       let obj = JSON.parse(JSON.stringify(p));
-      let array = obj[player].slice();
-      array[i] = parseInt(e.target.value);
-      obj[player] = array;
+      obj[player].points[i] = parseInt(e.target.value);
       return obj;
-    });
-    if (!apiCall) return;
-    await fetch("api/triggerSelectNot", {
-      body: JSON.stringify({
-        round: round,
-        userName: userName,
-        value: e.target.value,
-        player: player,
-        index: i,
-        roomName: roomName,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
     });
   }
 
   async function newRound() {
+    changePageNumber(0);
     setIsLoading(true);
-    await fetch("api/game/setPointSummary", {
-      body: JSON.stringify({
-        round: round,
-        userName: userName,
-        roomName: roomName,
-        inputSetsIds: inputSetsIds,
-        pointSummarys: pointSummarys,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
-    await fetch("api/game/setGameState", {
-      body: JSON.stringify({
-        roomName: roomName,
-        state: round === "roundOne" ? "roundTwoStart" : "gameEnd",
-        userName: userName,
-        roomRefId: roomRefId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    await makeRequest("game/setGameState", {
+      roomName: roomName,
+      state: round === "roundOne" ? "roundTwoStart" : "gameEnd",
+      userName: userName,
+      roomRefId: roomRefId,
     });
     setIsLoading(false);
   }
@@ -294,12 +277,15 @@ export default function Poll({
                   {Object.keys(inputSet).map((player) => {
                     return (
                       <div
-                        className="flex items-center justify-between w-full mb-5"
+                        className={
+                          (player === userName ? "opacity-50 " : "") +
+                          "flex items-center justify-between w-full mb-5"
+                        }
                         key={player}
                       >
                         <div className="flex items-center justify-start w-48 gap-1 mr-4 font-semibold break-all">
                           {player}
-                          <div className="">
+                          <div className="pt-[6px]">
                             <Image
                               src={getEmoji(player, roomRefId)}
                               width={18}
@@ -308,19 +294,33 @@ export default function Poll({
                           </div>
                         </div>
                         <div className="flex w-full">{inputSet[player]}</div>
-                        <div className="text-base text-gray-700 rounded bg-slate-200 ">
-                          <select
-                            className="px-2 py-1 text-sm bg-transparent rounded-sm active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none"
-                            value={pollResults[player][i]}
-                            onChange={(e) => handleSelectChange(e, player, i)}
-                          >
-                            <option value="4">Höchst kreativ</option>
-                            <option value="3">Echt gut</option>
-                            <option value="2">Nicht schlecht</option>
-                            <option value="1">So la la</option>
-                            <option value="0">Nicht ausgefüllt</option>
-                          </select>
-                        </div>
+                        {player !== userName && (
+                          <div className="text-base text-gray-700 rounded bg-slate-200 ">
+                            <select
+                              className="px-2 py-1 text-sm bg-transparent rounded-sm active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none"
+                              value={polls[player].points[i]}
+                              onChange={(e) => handleSelectChange(e, player, i)}
+                            >
+                              <option value="4">Höchst kreativ</option>
+                              <option value="3">Echt gut</option>
+                              <option value="2">Nicht schlecht</option>
+                              <option value="1">So la la</option>
+                              <option value="0">Nicht ausgefüllt</option>
+                            </select>
+                          </div>
+                        )}
+                        {player === userName && (
+                          <div className="text-base text-gray-700 rounded bg-slate-200 ">
+                            <select
+                              className="px-2 py-1 text-sm bg-transparent rounded-sm cursor-not-allowed active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none"
+                              disabled={true}
+                              value="-1"
+                            >
+                              <option value="0">Nicht ausgefüllt</option>
+                              <option value="-1"></option>
+                            </select>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -329,7 +329,7 @@ export default function Poll({
                     {pageNumber !== 0 && (
                       <button
                         disabled={!isHost}
-                        onClick={prevPage}
+                        onClick={() => changePageNumber(pageNumber - 1)}
                         className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Zurück
@@ -337,7 +337,7 @@ export default function Poll({
                     )}
                     <button
                       disabled={!isHost}
-                      onClick={nextPage}
+                      onClick={() => changePageNumber(pageNumber + 1)}
                       className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Weiter
@@ -372,35 +372,38 @@ export default function Poll({
               </div>
 
               {/* Table */}
-              {pointSummarys.map((pointSummary, rank) => {
+              {pollSummarys.map((pollSummary, rank) => {
                 return (
                   <div
-                    key={pointSummary[0]}
+                    key={pollSummary[0]}
                     className="flex justify-between w-full mb-5"
                   >
                     <div className="flex items-center justify-start gap-1 font-bold">
                       <div className="">
-                        {rank + 1}. {pointSummary[0]}{" "}
+                        {rank + 1}. {pollSummary[0]}{" "}
                       </div>{" "}
                       <div className="pt-[3px]">
                         <Image
-                          src={getEmoji(pointSummary[0], roomRefId)}
+                          src={getEmoji(pollSummary[0], roomRefId)}
                           width={18}
                           height={18}
                         />
                       </div>
                     </div>
-
                     {/* Point summary round one */}
                     {round !== "roundOne" && (
                       <div className="font-mono font-semibold text-fuchsia-300">
-                        {roundOnePointSummarys[pointSummary[0]]} Punkte
+                        {
+                          roundOnePollSummarys.find(
+                            (p) => p[0] === pollSummary[0]
+                          )[1]
+                        }{" "}
+                        Punkte
                       </div>
                     )}
-
                     {/* Current point summary */}
                     <div className="font-mono font-semibold text-fuchsia-500">
-                      {pointSummary[1]} Punkte
+                      {pollSummary[1]} Punkte
                     </div>
                   </div>
                 );

@@ -9,6 +9,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../utilities/toast";
 import Loading from "../components/Loading";
+import makeRequest from "../utilities/makeRequest";
 
 Modal.setAppElement("#modal-root");
 
@@ -35,7 +36,8 @@ export default function Home({ isAuthenticated }) {
     if (e.target.name === "joinRoomName") setJoinRoomName(e.target.value);
   }
 
-  async function createRoom() {
+  async function createRoom(e) {
+    e.preventDefault();
     setIsLoading(true);
 
     // No player name
@@ -57,14 +59,11 @@ export default function Home({ isAuthenticated }) {
         animalNames[Math.floor(Math.random() * animalNames.length)];
 
       // Check if room exists
-      const res = await fetch("api/room/getRoom", {
-        body: JSON.stringify({ roomName: animal }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const json = await res.json();
+      const json = await makeRequest(
+        "room/getRoom",
+        { roomName: animal },
+        true
+      );
 
       // No room found
       if (json.data.length === 0) {
@@ -77,12 +76,8 @@ export default function Home({ isAuthenticated }) {
 
       // If room has been created more than 24 hours ago, delete it
       if (now - createdDate > 86400000) {
-        const res = await fetch("api/room/deleteRoom", {
-          body: JSON.stringify({ roomRefId: json.data[0].ref["@ref"].id }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        await makeRequest("room/deleteRoom", {
+          roomRefId: json.data[0].ref["@ref"].id,
         });
 
         roomName = animal;
@@ -101,16 +96,10 @@ export default function Home({ isAuthenticated }) {
     }
 
     // Create room
-    await fetch("api/room/createRoom", {
-      body: JSON.stringify({
-        roomName: roomName,
-        playerName: playerName,
-        host: playerName,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    await makeRequest("room/createRoom", {
+      roomName: roomName,
+      playerName: playerName,
+      host: playerName,
     });
 
     // Save player name to cookies
@@ -125,7 +114,9 @@ export default function Home({ isAuthenticated }) {
     });
   }
 
-  async function joinRoom() {
+  async function joinRoom(e) {
+    console.log("JOIN ROOM");
+    e.preventDefault();
     setIsLoading(true);
 
     // No player name
@@ -144,15 +135,13 @@ export default function Home({ isAuthenticated }) {
         "error"
       );
     }
-
-    const res = await fetch("api/room/getRoom", {
-      body: JSON.stringify({ roomName: joinRoomName }),
-      headers: {
-        "Content-Type": "application/json",
+    const json = await makeRequest(
+      "room/getRoom",
+      {
+        roomName: joinRoomName,
       },
-      method: "POST",
-    });
-    const json = await res.json();
+      true
+    );
 
     // No room found
     if (json.data.length === 0) {
@@ -231,14 +220,20 @@ export default function Home({ isAuthenticated }) {
 
         <Modal
           isOpen={createModalIsOpen}
-          onRequestClose={() => setCreateModalIsOpen(false)}
+          onRequestClose={() => {
+            setCreateModalIsOpen(false);
+            setIsLoading(false);
+          }}
           className="absolute transition min-h-[200px] z-50 w-11/12 p-5 overflow-y-auto text-gray-700 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg top-1/2 left-1/2 md:max-w-md"
           overlayClassName="bg-gray-500/10 fixed inset-0 z-40"
         >
           <div className="flex items-start justify-between w-full ">
             <div className="block mb-4 text-lg font-bold">Raum erstellen</div>
             <button
-              onClick={() => setCreateModalIsOpen(false)}
+              onClick={() => {
+                setCreateModalIsOpen(false);
+                setIsLoading(false);
+              }}
               className="transition hover:rotate-180"
             >
               ✕
@@ -250,7 +245,7 @@ export default function Home({ isAuthenticated }) {
           {!isLoading && (
             <>
               {" "}
-              <form>
+              <form onSubmit={createRoom}>
                 <p className="mb-3">Wie ist dein Name?</p>
                 <input
                   type="text"
@@ -261,27 +256,33 @@ export default function Home({ isAuthenticated }) {
                   className="block w-full h-10 pr-12 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
                   name="playerName"
                 />
+                <button
+                  type="submit"
+                  className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
+                >
+                  Erstellen
+                </button>
               </form>
-              <button
-                onClick={createRoom}
-                className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
-              >
-                Erstellen
-              </button>{" "}
             </>
           )}
         </Modal>
 
         <Modal
           isOpen={joinModalIsOpen}
-          onRequestClose={() => setJoinModalIsOpen(false)}
+          onRequestClose={() => {
+            setJoinModalIsOpen(false);
+            setIsLoading(false);
+          }}
           className="absolute transition min-h-[200px] z-50 w-11/12 p-5 overflow-y-auto text-gray-700 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg top-1/2 left-1/2 md:max-w-md"
           overlayClassName="bg-gray-500/10 fixed inset-0 z-40"
         >
           <div className="flex items-start justify-between w-full ">
             <div className="block mb-4 text-lg font-bold">Raum beitreten</div>
             <button
-              onClick={() => setJoinModalIsOpen(false)}
+              onClick={() => {
+                setJoinModalIsOpen(false);
+                setIsLoading(false);
+              }}
               className="transition hover:rotate-180"
             >
               ✕
@@ -293,7 +294,7 @@ export default function Home({ isAuthenticated }) {
           {!isLoading && (
             <>
               {" "}
-              <form>
+              <form onSubmit={joinRoom}>
                 <p className="mb-3">Wie ist dein Name?</p>
                 <input
                   type="text"
@@ -313,13 +314,13 @@ export default function Home({ isAuthenticated }) {
                   autoComplete="off"
                   className="block w-full h-10 pr-12 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
                 />
+                <button
+                  type="submit"
+                  className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
+                >
+                  Beitreten
+                </button>
               </form>
-              <button
-                onClick={joinRoom}
-                className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
-              >
-                Beitreten
-              </button>{" "}
             </>
           )}
         </Modal>

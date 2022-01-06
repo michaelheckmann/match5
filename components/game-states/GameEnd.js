@@ -3,6 +3,7 @@ import Loading from "../Loading";
 import getEmoji from "../../utilities/getEmoji";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import makeRequest from "../../utilities/makeRequest";
 
 export default function GameEnd({
   players,
@@ -16,29 +17,23 @@ export default function GameEnd({
 
   const Router = useRouter();
 
-  useEffect(async () => {
+  useEffect(() => {
     setIsLoading(true);
-    const res = await fetch("api/game/getPointSummary", {
-      body: JSON.stringify({
-        roomRefId: roomRefId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
+    fetchData();
+  }, []);
 
-    const json = await res.json();
+  async function fetchData() {
+    const json = await makeRequest(
+      "game/getGameEndPoints",
+      { roomRefId: roomRefId },
+      true
+    );
 
     let pointsLoaded = [];
 
     json.data.forEach((pointSummary) => {
       const i = pointsLoaded.findIndex((p) => p[0] === pointSummary[0]);
       if (i === -1) {
-        pointsLoaded.push(pointSummary);
-        pointsLoaded.push(pointSummary);
-        pointsLoaded.push(pointSummary);
-        pointsLoaded.push(pointSummary);
         pointsLoaded.push(pointSummary);
       } else pointsLoaded[i][1] += pointSummary[1];
     });
@@ -50,7 +45,7 @@ export default function GameEnd({
 
     setPoints(p);
     setIsLoading(false);
-  }, []);
+  }
 
   return (
     <div className="flex flex-col items-center justify-start w-full h-full pt-24 pb-14">
@@ -63,13 +58,14 @@ export default function GameEnd({
             </div>
             <div className="relative flex flex-col items-center justify-center p-5 border rounded-lg shadow-md border-fuchsia-600 shadow-fuchsia-600/10">
               <div className="absolute rotate-45 -top-4 -right-4">
-                <Image src="/emojis/crown.svg" width={40} height={40} />
+                <Image src="/emojis/crown.svg" width={40} height={40} alt="" />
               </div>
               <div className="">
                 <Image
                   src={getEmoji(points[0][0], roomRefId)}
                   width={50}
                   height={50}
+                  alt=""
                 />
               </div>
 
@@ -83,7 +79,10 @@ export default function GameEnd({
             {points.map((point, i) => {
               if (i === 0) return;
               return (
-                <div className="flex items-center justify-center gap-1">
+                <div
+                  className="flex items-center justify-center gap-1"
+                  key={point[0]}
+                >
                   <div className="flex gap-1">
                     <div className="">
                       {i + 1}. <span>{point[0]}</span>
@@ -93,6 +92,7 @@ export default function GameEnd({
                         src={getEmoji(point[0], roomRefId)}
                         width={18}
                         height={18}
+                        alt=""
                       />
                     </div>
                   </div>

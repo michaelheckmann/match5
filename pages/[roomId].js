@@ -16,6 +16,7 @@ import GameEnd from "../components/game-states/GameEnd";
 import Head from "next/head";
 import Loading from "../components/Loading";
 import Image from "next/image";
+import makeRequest from "../utilities/makeRequest";
 
 const displayTitle = (gameState) => {
   let round = 0;
@@ -73,7 +74,7 @@ export default function Room({
   );
   const [pollPage, setPollPage] = useState(pollPageProp);
 
-  useEffect(async () => {
+  useEffect(() => {
     setIsLoading(true);
 
     // First check if the user has entered the correct password
@@ -97,8 +98,8 @@ export default function Room({
     let channel = channels.subscribe(roomNameProp);
 
     channel.bind("playerJoined", (newPlayer) => {
-      if (newPlayer === userNameProp) return;
       setPlayers((o) => [...o, newPlayer]);
+      if (newPlayer === userNameProp) return;
       showToast(`${newPlayer} ist dem Raum beigetreten`, "default", 5000);
     });
 
@@ -128,6 +129,8 @@ export default function Room({
         case "roundOne":
           setRoundOneCategories(categoriesSetData.categories);
           if (categoriesSetData.userName === userNameProp) return;
+          if (categoriesSetData.categories.length === 0) return;
+
           return showToast(
             `${categoriesSetData.userName} hat die Kategorien bestimmt`,
             "default",
@@ -136,6 +139,8 @@ export default function Room({
         case "roundTwo":
           setRoundTwoCategories(categoriesSetData.categories);
           if (categoriesSetData.userName === userNameProp) return;
+          if (categoriesSetData.categories.length === 0) return;
+
           return showToast(
             `${categoriesSetData.userName} hat die Kategorien bestimmt`,
             "default",
@@ -167,26 +172,21 @@ export default function Room({
       }
     });
 
-    channel.bind("pollSubmitted", (pollSubmittedData) => {
-      if (pollSubmittedData.userName === userNameProp) return;
-      setPollPage(pollSubmittedData.pollPage);
+    channel.bind("pageChanged", (pageChangedData) => {
+      if (pageChangedData.userName === userNameProp) return;
+      setPollPage(pageChangedData.pollPage);
     });
 
     // Wait until the subscription has succeeded
     channel.bind("pusher:subscription_succeeded", async () => {
       // If the user has not created the room, add him to the players
       // If the player is already in the room, don't add him again
+      console.log("---PLAYERS----", players, userNameProp);
       if (userNameProp !== hostNameProp && !players.includes(userNameProp)) {
-        await fetch("api/room/joinRoom", {
-          body: JSON.stringify({
-            roomRefId: roomRefIdProp,
-            userName: userNameProp,
-            roomName: roomNameProp,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        await makeRequest("room/joinRoom", {
+          roomRefId: roomRefIdProp,
+          userName: userNameProp,
+          roomName: roomNameProp,
         });
       }
     });
@@ -238,11 +238,12 @@ export default function Room({
               key={p}
             >
               {p}
-              <div className="pt-[2px]">
+              <div className="pt-[3px]">
                 <Image
                   src={getEmoji(p, roomRefIdProp)}
                   width={18}
                   height={18}
+                  alt=""
                 />
               </div>
             </div>
@@ -403,6 +404,7 @@ export async function getServerSideProps(context) {
       userNameProp: userName,
       gameStateProp: room.gameState,
       roundOneCategoriesProp: room.roundOneCategories,
+      roundTwoCategoriesProp: room.roundTwoCategories,
       pollPageProp: room.pollPage,
     }, // will be passed to the page component as props
   };
