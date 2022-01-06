@@ -25,7 +25,7 @@ export default function Action({
   categories,
   isHost,
 }) {
-  const [intervalCounter, setIntervalCounter] = useState(30);
+  const [intervalCounter, setIntervalCounter] = useState(10);
   const [inputs, setInputs] = useState(Array(10).fill(""));
   const [isLoading, setIsLoading] = useState(false);
 

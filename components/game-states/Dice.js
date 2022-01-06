@@ -34,7 +34,6 @@ export default function Dice({
 
   // Stop the counter if the categories were set via pusher
   useEffect(() => {
-    console.log("CATEGORIES", categoriesProp);
     if (!categoriesProp || categoriesProp.length === 0) startCounter();
     if (categoriesProp && categoriesProp.length > 0) stopCounter(false);
   }, [categoriesProp]);
@@ -92,12 +91,9 @@ export default function Dice({
     setIsLoading(false);
   }
 
-  useEffect(() => {
-    console.log("incrementCounter", incrementCounter);
-  }, [incrementCounter]);
+  useEffect(() => {}, [incrementCounter]);
 
   async function rollDice() {
-    console.log("ROLL DICE");
     await makeRequest("game/setCategories", {
       round: round,
       categories: [],

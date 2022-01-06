@@ -33,7 +33,7 @@ export default function Poll({
   const [polls, setPolls] = useState({});
   const [pollSummarys, setPollSummarys] = useState([]);
   const [roundOnePollSummarys, setRoundOnePollSummarys] = useState([]);
-  const [pageNumber, setPageNumber] = useState(pollPage);
+  const [pageNumber, setPageNumber] = useState(pollPage || 0);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -96,7 +96,7 @@ export default function Poll({
     console.log("json", json);
     console.log("Pagenumber!!", pageNumber);
     // console.log("transformedInputSets", transformedInputSets);
-    // console.log("inputSetIds", inputSetIds);
+    console.log("inputSetIds", inputSetIds);
     console.log("jsonPolls", jsonPolls);
     console.log("transformedPolls", transformedPolls);
     console.log("tentativePollResults", tentativePollResults);
@@ -122,14 +122,14 @@ export default function Poll({
     if (pageNumber !== 10) return;
 
     setShowResultScreen(true);
-    handleGameEndPoints();
+    handleSumOfPoints();
   }, [pageNumber]);
 
-  async function handleGameEndPoints() {
-    let sum = await fetchPointSummary(round);
+  async function handleSumOfPoints() {
+    let sum = await fetchSumOfPoints(round);
 
     if (round !== "roundOne") {
-      let sumRoundOne = await fetchPointSummary("roundOne", true);
+      let sumRoundOne = await fetchSumOfPoints("roundOne", true);
       sum = sum.map((s) => {
         let player = s[0];
         let pointsCurrentRound = s[1];
@@ -138,10 +138,12 @@ export default function Poll({
       });
     }
 
-    makeSetPointSummaryRequest(inputSetIds, sum);
+    if (isHost) setSumOfPoints(inputSetIds, sum);
   }
 
-  async function makeSetPointSummaryRequest(inputSetIds, sum) {
+  async function setSumOfPoints(inputSetIds, sum) {
+    console.log("1. TOTAL", sum);
+    console.log("2. INPUT SET IDS", inputSetIds);
     // Save aggregate to DB
     await makeRequest("game/setPointSummary", {
       inputSetsIds: inputSetIds,
@@ -149,14 +151,14 @@ export default function Poll({
     });
   }
 
-  async function fetchPointSummary(roundInput, fetchParticularInput = false) {
+  async function fetchSumOfPoints(roundInput, fetchParticularInput = false) {
     const json = await makeRequest(
-      "game/getPointSummary",
+      "game/getSumOfPoints",
       { roomRefId: roomRefId, round: roundInput },
       true
     );
 
-    console.log("fetchPoints summary", json.data);
+    // Add up all the sum of points per player
     let summary = [];
     json.data.forEach((d) => {
       let i = summary.findIndex((s) => s[0] === d.evaluated);
@@ -167,12 +169,13 @@ export default function Poll({
         ]);
       summary[i][1] += roundTo(d.points / (players.length - 1), 1);
     });
-    console.log("summary", summary);
-    if (fetchParticularInput && roundInput === "roundOne") {
-      setRoundOnePollSummarys(summary);
+
+    if (fetchParticularInput) {
+      if (roundInput === "roundOne") setRoundOnePollSummarys(summary);
     } else {
       setPollSummarys(summary);
     }
+
     return summary;
   }
 

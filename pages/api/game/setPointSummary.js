@@ -1,11 +1,13 @@
 export default async function handler(req, res) {
   const { client, q } = require("../../../utilities/db");
-
-  for (const [player, inputSetsId] of Object.entries(req.body.inputSetsIds)) {
+  for (const inputSet of req.body.inputSetsIds) {
+    console.log("INPUT SET", inputSet);
     const faunaQuery = client.query(
-      q.Update(q.Ref(q.Collection("inputSets"), inputSetsId), {
+      q.Update(q.Ref(q.Collection("inputSets"), inputSet[1]), {
         data: {
-          pointSummary: req.body.pointSummary.find((p) => p[0] === player)[1],
+          pointSummary: req.body.pointSummary.find(
+            (p) => p[0] === inputSet[0]
+          )[1],
         },
       })
     );
