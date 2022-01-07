@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  console.log("createInputSet", req.body.userName);
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Create(q.Collection("inputSets"), {

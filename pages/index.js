@@ -115,7 +115,6 @@ export default function Home({ isAuthenticated }) {
   }
 
   async function joinRoom(e) {
-    console.log("JOIN ROOM");
     e.preventDefault();
     setIsLoading(true);
 

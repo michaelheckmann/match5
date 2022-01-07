@@ -1,9 +1,8 @@
 export default async function handler(req, res) {
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
-      q.Paginate(q.Match(q.Index("inputSets__roomRefId"), req.body.roomRefId))
+    q.Call(q.Function("GetPointSummary"), req.body.roomRefId)
   );
-
   try {
     const response = await faunaQuery;
     return res.status(200).json(response);

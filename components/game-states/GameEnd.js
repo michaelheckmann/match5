@@ -12,45 +12,38 @@ export default function GameEnd({
   roomRefId,
   isHost,
 }) {
-  const [points, setPoints] = useState([]);
+  const [pollSummary, setPollSummary] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const Router = useRouter();
 
   useEffect(() => {
     setIsLoading(true);
-    fetchData();
+    fetchPointSummary();
   }, []);
 
-  async function fetchData() {
+  async function fetchPointSummary() {
     const json = await makeRequest(
-      "game/getGameEndPoints",
+      "game/getPointSummary",
       { roomRefId: roomRefId },
       true
     );
 
-    let pointsLoaded = [];
-
-    json.data.forEach((pointSummary) => {
-      const i = pointsLoaded.findIndex((p) => p[0] === pointSummary[0]);
-      if (i === -1) {
-        pointsLoaded.push(pointSummary);
-      } else pointsLoaded[i][1] += pointSummary[1];
-    });
-
-    let p = pointsLoaded.sort((a, b) => {
-      if (a[1] === b[1]) return 0;
-      else return a[1] > b[1] ? -1 : 1;
-    });
-
-    setPoints(p);
+    setPollSummary(
+      json
+        .map((o) => [o.name, o.pointsRoundOne + o.pointsRoundTwo])
+        .sort((a, b) => {
+          if (a[1] === b[1]) return 0;
+          else return a[1] > b[1] ? -1 : 1;
+        })
+    );
     setIsLoading(false);
   }
 
   return (
     <div className="flex flex-col items-center justify-start w-full h-full pt-24 pb-14">
       <Loading isLoading={isLoading} />
-      {!isLoading && points.length > 0 && (
+      {!isLoading && pollSummary.length > 0 && (
         <div className="flex flex-col justify-start items-start p-4 mx-5 min-h-[400px] w-full max-w-[700px] text-gray-700 bg-slate-100 border border-slate-300 rounded-lg shadow-lg">
           <div className="flex flex-col items-center justify-center w-full">
             <div className="mb-2 font-extrabold tracking-wider uppercase text-fuchsia-600">
@@ -62,21 +55,21 @@ export default function GameEnd({
               </div>
               <div className="">
                 <Image
-                  src={getEmoji(points[0][0], roomRefId)}
+                  src={getEmoji(pollSummary[0][0], roomRefId)}
                   width={50}
                   height={50}
                   alt=""
                 />
               </div>
 
-              <div className="font-bold">{points[0][0]}</div>
+              <div className="font-bold">{pollSummary[0][0]}</div>
               <div className="font-mono leading-tight text-fuchsia-600">
-                {points[0][1]} Punkte
+                {pollSummary[0][1]} Punkte
               </div>
             </div>
           </div>
           <div className="flex flex-wrap justify-between w-full mt-16 gap-x-14 gap-y-4">
-            {points.map((point, i) => {
+            {pollSummary.map((point, i) => {
               if (i === 0) return;
               return (
                 <div
@@ -87,7 +80,7 @@ export default function GameEnd({
                     <div className="">
                       {i + 1}. <span>{point[0]}</span>
                     </div>
-                    <div className="pt-[2px]">
+                    <div className="pt-[6px]">
                       <Image
                         src={getEmoji(point[0], roomRefId)}
                         width={18}
@@ -103,13 +96,15 @@ export default function GameEnd({
               );
             })}
           </div>
-          <div className="flex justify-end w-full h-full">
-            <button
-              className="px-5 py-2 mt-8 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={() => Router.push("/")}
-            >
-              Zurück zur Lobby
-            </button>
+          <div className="flex items-end justify-end w-full h-full">
+            <div className="">
+              <button
+                className="px-5 py-2 mt-8 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => Router.push("/")}
+              >
+                Zurück zur Lobby
+              </button>
+            </div>
           </div>
         </div>
       )}

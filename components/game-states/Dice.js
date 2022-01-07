@@ -46,7 +46,6 @@ export default function Dice({
   }, []);
 
   function startCounter() {
-    console.log("START COUNTER");
     interval.current = setInterval(() => {
       setIntervalCounter((c) => c.map((_) => Math.floor(Math.random() * 6)));
       setIncrementCounter((c) => c + 0.2);

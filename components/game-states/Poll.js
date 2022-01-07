@@ -29,21 +29,18 @@ export default function Poll({
   pollPage,
 }) {
   const [inputSets, setInputSets] = useState([]);
-  const [inputSetIds, setInputSetIds] = useState([]);
   const [polls, setPolls] = useState({});
-  const [pollSummarys, setPollSummarys] = useState([]);
   const [roundOnePollSummarys, setRoundOnePollSummarys] = useState([]);
-  const [pageNumber, setPageNumber] = useState(pollPage || 0);
+  const [roundTwoPollSummarys, setRoundTwoPollSummarys] = useState([]);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   //   Get the inputs from the players
-  useEffect(() => {
-    setIsLoading(true);
-    fetchData();
-  }, []);
+  useEffect(() => fetchData(), []);
 
   async function fetchData() {
+    setIsLoading(true);
+
     const json = await makeRequest(
       "game/getInputSets",
       { roomRefId: roomRefId, round: round },
@@ -69,7 +66,6 @@ export default function Poll({
     });
 
     setInputSets(transformedInputSets);
-    setInputSetIds(inputSetIds);
 
     const jsonPolls = await makeRequest(
       "game/getPolls",
@@ -93,106 +89,33 @@ export default function Poll({
 
     setPolls(transformedPolls);
 
-    console.log("json", json);
-    console.log("Pagenumber!!", pageNumber);
-    // console.log("transformedInputSets", transformedInputSets);
-    console.log("inputSetIds", inputSetIds);
-    console.log("jsonPolls", jsonPolls);
-    console.log("transformedPolls", transformedPolls);
-    console.log("tentativePollResults", tentativePollResults);
-
     setIsLoading(false);
   }
 
-  // Keep pollPage Number and pageNumber in Sync
-  useEffect(() => {
-    if (!isHost) submitPoll();
-    setPageNumber(pollPage);
-  }, [pollPage]);
+  useEffect(() => handlePageChange(), [pollPage]);
 
-  async function submitPoll() {
+  async function handlePageChange() {
     await makeRequest("game/submitPoll", {
       userName: userName,
       polls: polls,
     });
-  }
 
-  // Handle round summary
-  useEffect(() => {
-    if (pageNumber !== 10) return;
+    if (pollPage !== 10) return;
 
-    setShowResultScreen(true);
-    handleSumOfPoints();
-  }, [pageNumber]);
-
-  async function handleSumOfPoints() {
-    let sum = await fetchSumOfPoints(round);
-
-    if (round !== "roundOne") {
-      let sumRoundOne = await fetchSumOfPoints("roundOne", true);
-      sum = sum.map((s) => {
-        let player = s[0];
-        let pointsCurrentRound = s[1];
-        let pointsRoundOne = sumRoundOne.find((o) => o[0] === player)[1];
-        return [player, pointsCurrentRound + pointsRoundOne];
-      });
-    }
-
-    if (isHost) setSumOfPoints(inputSetIds, sum);
-  }
-
-  async function setSumOfPoints(inputSetIds, sum) {
-    console.log("1. TOTAL", sum);
-    console.log("2. INPUT SET IDS", inputSetIds);
-    // Save aggregate to DB
-    await makeRequest("game/setPointSummary", {
-      inputSetsIds: inputSetIds,
-      pointSummary: sum,
-    });
-  }
-
-  async function fetchSumOfPoints(roundInput, fetchParticularInput = false) {
     const json = await makeRequest(
-      "game/getSumOfPoints",
-      { roomRefId: roomRefId, round: roundInput },
+      "game/getPointSummary",
+      { roomRefId: roomRefId },
       true
     );
 
-    // Add up all the sum of points per player
-    let summary = [];
-    json.data.forEach((d) => {
-      let i = summary.findIndex((s) => s[0] === d.evaluated);
-      if (i === -1)
-        return summary.push([
-          d.evaluated,
-          roundTo(d.points / (players.length - 1), 1),
-        ]);
-      summary[i][1] += roundTo(d.points / (players.length - 1), 1);
-    });
+    setRoundOnePollSummarys(json.map((o) => [o.name, o.pointsRoundOne]));
+    setRoundTwoPollSummarys(json.map((o) => [o.name, o.pointsRoundTwo]));
 
-    if (fetchParticularInput) {
-      if (roundInput === "roundOne") setRoundOnePollSummarys(summary);
-    } else {
-      setPollSummarys(summary);
-    }
-
-    return summary;
-  }
-
-  function roundTo(n, digits) {
-    if (digits === undefined) {
-      digits = 0;
-    }
-
-    var multiplicator = Math.pow(10, digits);
-    n = parseFloat((n * multiplicator).toFixed(11));
-    var test = Math.round(n) / multiplicator;
-    return +test.toFixed(digits);
+    setShowResultScreen(true);
   }
 
   async function changePageNumber(nextPageNumber) {
     setIsLoading(true);
-    setPageNumber(nextPageNumber);
 
     await makeRequest("game/submitPoll", {
       userName: userName,
@@ -219,7 +142,8 @@ export default function Poll({
   }
 
   async function newRound() {
-    changePageNumber(0);
+    await changePageNumber(0);
+
     setIsLoading(true);
     await makeRequest("game/setGameState", {
       roomName: roomName,
@@ -243,7 +167,7 @@ export default function Poll({
         <div className="flex items-start justify-center w-full h-full mt-10">
           {!showResultScreen &&
             inputSets.map((inputSet, i) => {
-              if (i !== pageNumber) return null;
+              if (i !== pollPage) return null;
               return (
                 <div
                   key={inputSet}
@@ -329,10 +253,10 @@ export default function Poll({
                   })}
 
                   <div className="flex items-end justify-end w-full h-full gap-5 mt-auto">
-                    {pageNumber !== 0 && (
+                    {pollPage !== 0 && (
                       <button
                         disabled={!isHost}
-                        onClick={() => changePageNumber(pageNumber - 1)}
+                        onClick={() => changePageNumber(pollPage - 1)}
                         className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Zurück
@@ -340,7 +264,7 @@ export default function Poll({
                     )}
                     <button
                       disabled={!isHost}
-                      onClick={() => changePageNumber(pageNumber + 1)}
+                      onClick={() => changePageNumber(pollPage + 1)}
                       className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Weiter
@@ -375,7 +299,7 @@ export default function Poll({
               </div>
 
               {/* Table */}
-              {pollSummarys.map((pollSummary, rank) => {
+              {roundOnePollSummarys.map((pollSummary, rank) => {
                 return (
                   <div
                     key={pollSummary[0]}
@@ -394,20 +318,24 @@ export default function Poll({
                       </div>
                     </div>
                     {/* Point summary round one */}
-                    {round !== "roundOne" && (
+                    {["roundOne", "roundTwo"].includes(round) && (
+                      <div className="font-mono font-semibold text-fuchsia-300">
+                        {pollSummary[1]}
+                        Punkte
+                      </div>
+                    )}
+
+                    {/* Point summary round two */}
+                    {["roundTwo"].includes(round) && (
                       <div className="font-mono font-semibold text-fuchsia-300">
                         {
-                          roundOnePollSummarys.find(
+                          roundTwoPollSummarys.find(
                             (p) => p[0] === pollSummary[0]
                           )[1]
                         }{" "}
                         Punkte
                       </div>
                     )}
-                    {/* Current point summary */}
-                    <div className="font-mono font-semibold text-fuchsia-500">
-                      {pollSummary[1]} Punkte
-                    </div>
                   </div>
                 );
               })}

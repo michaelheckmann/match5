@@ -173,7 +173,6 @@ export default function Room({
     });
 
     channel.bind("pageChanged", (pageChangedData) => {
-      if (pageChangedData.userName === userNameProp) return;
       setPollPage(pageChangedData.pollPage);
     });
 
@@ -181,7 +180,6 @@ export default function Room({
     channel.bind("pusher:subscription_succeeded", async () => {
       // If the user has not created the room, add him to the players
       // If the player is already in the room, don't add him again
-      console.log("---PLAYERS----", players, userNameProp);
       if (userNameProp !== hostNameProp && !players.includes(userNameProp)) {
         await makeRequest("room/joinRoom", {
           roomRefId: roomRefIdProp,
