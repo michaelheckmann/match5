@@ -103,10 +103,10 @@ export default function Dice({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full">
+    <div className="flex flex-col items-center justify-center w-full h-full flex-auto sm:pb-[100px]">
       <Loading isLoading={isLoading} />
       {!isLoading && (
-        <div className="flex flex-wrap justify-center w-full mt-20 gap-14">
+        <div className="flex flex-wrap justify-center w-full sm:mt-20 gap-14">
           {/* Round One Dice Roll */}
           {round === "roundOne" &&
             roundOneCategories.map((category, i) => {
@@ -228,23 +228,25 @@ export default function Dice({
         </button>
       )}
       {!isLoading && showLabel && (
-        <div className="flex gap-5">
+        <div className="flex flex-col gap-5 mt-20 sm:flex-row">
           <button
             onClick={rollDice}
             disabled={!isHost}
-            className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 font-bold border rounded sm:px-5 sm:py-2 text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Nochmal würfeln
           </button>
           <button
             onClick={startRound}
             disabled={!isHost}
-            className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="order-first px-6 py-3 font-bold text-white rounded sm:px-5 sm:py-2 bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed sm:order-none"
           >
             Runde starten
           </button>
         </div>
       )}
+      {/* V SPACER */}
+      {!isLoading && <div className="w-full h-20 sm:hidden"></div>}
     </div>
   );
 }

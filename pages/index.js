@@ -177,19 +177,33 @@ export default function Home({ isAuthenticated }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="relative flex items-center justify-center w-screen h-screen text-gray-700 bg-gray-100">
-        <div className="">
-          <h1 className="absolute top-28 left-1/2 -ml-[200px] w-[400px] font-bold text-3xl text-center text-fuchsia-600 z-10">
+      <div className="relative flex items-center justify-center w-screen h-screen text-gray-700 bg-gray-100 overflow-x-hidden">
+        <div className="w-full">
+          <h1 className="absolute top-28 sm:top-32 left-1/2 -ml-[200px] w-[400px] font-bold text-2xl sm:text-3xl text-center text-fuchsia-600 z-10">
             Match 5: Lobby
           </h1>
           <svg
-            className="absolute z-0 rotate-90 top-28 -translate-y-28 stroke-fuchsia-500 fill-transparent"
+            className="absolute z-0 rotate-90 -top-12 sm:top-0 left-1/2 -ml-[200px] w-[400px] stroke-fuchsia-500 fill-transparent scale-75 sm:scale-100"
             xmlns="http://www.w3.org/2000/svg"
-            width="300"
-            height="300"
+            width="450"
+            height="450"
             viewBox="0 0 600 600"
           >
-            <g transform="translate(300,300)">
+            <g transform="translate(230,320)">
+              <path
+                d="M108.7,-102.8C139.7,-47.8,163,-2.6,157.3,41.4C151.6,85.4,117,128.3,71.9,150.5C26.8,172.7,-28.9,174.2,-85.4,155.4C-141.9,136.6,-199.1,97.6,-217.2,42.6C-235.3,-12.3,-214.2,-83.2,-171.5,-140.9C-128.7,-198.7,-64.4,-243.3,-12.8,-233.2C38.8,-223,77.7,-157.9,108.7,-102.8Z"
+                fill=""
+              />
+            </g>
+          </svg>
+          <svg
+            className="absolute z-0 rotate-90 -translate-x-3 -top-12 sm:top-0 left-1/2 -ml-[200px] w-[400px] stroke-pink-400 fill-transparent scale-75 sm:scale-100"
+            xmlns="http://www.w3.org/2000/svg"
+            width="450"
+            height="450"
+            viewBox="0 0 600 600"
+          >
+            <g transform="translate(230,320)">
               <path
                 d="M108.7,-102.8C139.7,-47.8,163,-2.6,157.3,41.4C151.6,85.4,117,128.3,71.9,150.5C26.8,172.7,-28.9,174.2,-85.4,155.4C-141.9,136.6,-199.1,97.6,-217.2,42.6C-235.3,-12.3,-214.2,-83.2,-171.5,-140.9C-128.7,-198.7,-64.4,-243.3,-12.8,-233.2C38.8,-223,77.7,-157.9,108.7,-102.8Z"
                 fill=""
@@ -200,16 +214,16 @@ export default function Home({ isAuthenticated }) {
           <Loading isLoading={isLoading} />
 
           {!isLoading && (
-            <div className="flex items-center justify-center gap-10">
+            <div className="flex flex-col items-center justify-center gap-10 px-4 mt-10 sm:flex-row sm:mt-0">
               <button
                 onClick={() => setCreateModalIsOpen(true)}
-                className="p-4 font-bold transition bg-white rounded-lg shadow hover:scale-105 hover:-rotate-3 hover:text-fuchsia-500"
+                className="z-10 px-8 py-5 font-bold transition bg-white rounded-lg shadow sm:p-4 sm:hover:scale-105 sm:hover:-rotate-3 sm:hover:text-fuchsia-500"
               >
                 Raum erstellen
               </button>
               <button
                 onClick={() => setJoinModalIsOpen(true)}
-                className="p-4 font-bold transition bg-white rounded-lg shadow hover:scale-105 hover:rotate-3 hover:text-fuchsia-500"
+                className="z-10 px-8 py-5 font-bold transition bg-white rounded-lg shadow sm:p-4 sm:hover:scale-105 sm:hover:rotate-3 sm:hover:text-fuchsia-500"
               >
                 Raum beitreten
               </button>
@@ -327,7 +341,7 @@ export default function Home({ isAuthenticated }) {
 
       <ToastContainer
         toastClassName={() =>
-          "relative flex justify-between p-1 rounded-lg overflow-hidden text-red-400 bg-red-100 border border-red-500 shadow-lg mt-3"
+          "relative flex justify-between p-1 rounded-lg overflow-hidden text-red-400 bg-red-100 border border-red-500 shadow-lg mt-3 sm:mb-0 mb-4 sm:mx-0 mx-4"
         }
         bodyClassName={() => "flex text-sm font-semibold block p-3 w-full"}
         position="bottom-center"

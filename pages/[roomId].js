@@ -203,7 +203,11 @@ export default function Room({
   }, []);
 
   return (
-    <div className="relative flex flex-col items-center w-screen h-screen overflow-y-scroll text-gray-700 bg-gray-100">
+    <div
+      className={
+        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen overflow-x-hidden"
+      }
+    >
       <Head>
         <title>Match5: {roomNameProp}</title>
         <meta name="description" content={"Spiel " + roomNameProp} />
@@ -211,8 +215,8 @@ export default function Room({
       </Head>
 
       {/* Header */}
-      <div className="z-50 flex items-start justify-between w-full p-4">
-        <div className="flex flex-col">
+      <div className="grid w-full grid-cols-2 p-4 sm:grid-cols-3">
+        <div className="flex flex-col text-sm sm:text-base">
           <div className="">
             <span className="font-bold">Raum:</span> {roomNameProp}
           </div>
@@ -226,13 +230,13 @@ export default function Room({
             </div>
           )}
         </div>
-        <div className="font-bold text-xl absolute top-6 text-center left-1/2 w-[400px] -ml-[200px]">
+        <div className="order-last col-span-2 mt-4 text-lg font-bold text-center sm:text-xl place-self-center sm:order-none sm:col-span-1 sm:mt-0">
           {displayTitle(gameState)[1]}
         </div>
         <div className="flex flex-wrap items-start justify-end max-w-md gap-1">
           {players.map((p) => (
             <div
-              className="flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium leading-tight text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm grow-0"
+              className="flex items-center justify-center gap-1 px-2 py-1 text-sm font-medium leading-tight text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm sm:px-3 sm:py-2 grow-0"
               key={p}
             >
               {p}
@@ -253,7 +257,7 @@ export default function Room({
 
       {/* Main Body */}
       {!isLoading && (
-        <div className="absolute inset-0 w-screen h-screen">
+        <div className="flex flex-col flex-auto w-full h-full p-4">
           {gameState === "lobby" && (
             <Lobby
               players={players}
@@ -357,7 +361,7 @@ export default function Room({
       <ToastContainer
         toastClassName={({ type }) =>
           contextClass[type || "default"] +
-          " relative flex justify-between p-1 rounded-lg overflow-hidden border shadow-lg mt-3"
+          " relative flex justify-between p-1 rounded-lg overflow-hidden border shadow-lg mt-3 sm:mb-0 mb-4 sm:mx-0 mx-4"
         }
         bodyClassName={() => "flex text-sm font-semibold block p-3 w-full"}
         position="bottom-center"

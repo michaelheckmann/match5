@@ -28,10 +28,17 @@ export default function Action({
   const [intervalCounter, setIntervalCounter] = useState(300);
   const [inputs, setInputs] = useState(Array(10).fill(""));
   const [isLoading, setIsLoading] = useState(false);
+  const [timerIsVisible, setTimerIsVisible] = useState(false);
 
   const nineLeftTriggered = useRef(false);
   const oneLeftTriggered = useRef(false);
   const interval = useRef(null);
+  const timerRef = useRef(null);
+
+  const callbackFunc = (entries) => {
+    const [entry] = entries;
+    setTimerIsVisible(entry.isIntersecting);
+  };
 
   //   Countdown
   useEffect(() => {
@@ -43,6 +50,18 @@ export default function Action({
       clearInterval(interval.current);
     };
   }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(callbackFunc, {
+      roots: null,
+      rootMargin: "0px",
+      threshold: 0.5,
+    });
+    if (timerRef.current) observer.observe(timerRef.current);
+    return () => {
+      if (timerRef.current) observer.unobserve(timerRef.current);
+    };
+  }, [timerRef]);
 
   useEffect(() => {
     // Countdown has finished
@@ -107,11 +126,28 @@ export default function Action({
   }
 
   return (
-    <div className="flex flex-col items-center justify-start mt-[104px] w-full h-full">
-      <div className="grid w-full grid-cols-3 px-3">
+    <div className="flex flex-col items-center justify-start flex-auto w-full h-full">
+      <div className={(timerIsVisible ? "hidden " : "") + "sticky top-4"}>
+        <div
+          className={
+            (intervalCounter <= 10 && intervalCounter % 2 !== 0
+              ? "border-red-300 text-red-500 bg-red-200"
+              : "") +
+            (intervalCounter <= 10 && intervalCounter % 2 === 0
+              ? "border-red-400 text-red-600 bg-red-300"
+              : "") +
+            " px-3 py-2 font-mono text-xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-lg"
+          }
+        >
+          {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
+          {(intervalCounter % 60).toString().padStart(2, "0")}
+        </div>
+      </div>
+      <div className="grid w-full grid-cols-1 gap-5 px-3 sm:grid-cols-3 sm:gap-0 place-items-center">
         {/* Countdown Widget */}
-        <div className="flex items-start justify-start flex-grow">
+        <div className="flex items-start justify-center flex-grow sm:justify-start">
           <div
+            ref={timerRef}
             className={
               (intervalCounter <= 10 && intervalCounter % 2 !== 0
                 ? "border-red-300 text-red-500 bg-red-200"
@@ -148,11 +184,18 @@ export default function Action({
         <div className="flex-grow"></div>
       </div>
 
-      <Loading isLoading={isLoading} />
+      <div
+        className={
+          (isLoading ? "" : "hidden ") +
+          "flex items-center justify-center flex-auto w-full h-full"
+        }
+      >
+        <Loading isLoading={isLoading} />
+      </div>
 
       {/* Input fields */}
       {!isLoading && (
-        <div className="flex flex-wrap justify-center w-full max-w-4xl gap-10 px-4 pb-20 mt-14">
+        <div className="flex flex-wrap justify-center w-full max-w-4xl gap-10 px-4 mt-14">
           {combinations.map((c, i) => {
             return (
               <div className="flex flex-[0_0_40%] min-w-[300px] gap-2" key={i}>
@@ -182,6 +225,9 @@ export default function Action({
           <div className="hidden text-slate-500 text-amber-500"></div>
         </div>
       )}
+
+      {/* V SPACER */}
+      {!isLoading && <div className="w-full h-20 md:hidden"></div>}
     </div>
   );
 }

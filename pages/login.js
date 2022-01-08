@@ -7,7 +7,7 @@ import { showToast } from "../utilities/toast";
 import makeRequest from "../utilities/makeRequest";
 
 const CloseButton = ({ closeToast }) => (
-  <div onClick={closeToast} className="text-red-500 pr-1">
+  <div onClick={closeToast} className="pr-1 text-red-500">
     ✕
   </div>
 );
@@ -39,14 +39,14 @@ const Login = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="w-screen h-screen flex justify-center items-center bg-gray-100 text-gray-700">
-        <div className="shadow-lg rounded-lg p-9 bg-white">
+      <div className="flex items-center justify-center w-screen h-screen text-gray-700 bg-gray-100 px-7 overflow-x-hidden">
+        <div className="bg-white rounded-lg shadow-lg p-9">
           <form onSubmit={handleSubmit}>
             <label className="block">
-              <span className="font-bold block mb-4 text-lg">Passwort</span>
+              <span className="block mb-4 text-lg font-bold">Passwort</span>
               <input
                 type="text"
-                className="focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 block w-full focus:outline-none pl-7 pr-12 h-10 text-center font-mono sm:text-sm border-gray-300 border rounded-md"
+                className="block w-full h-10 pr-12 font-mono text-center border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm sm:placeholder:text-base placeholder:text-sm"
                 placeholder="Passwort eingeben"
                 value={password}
                 autoComplete="off"
@@ -58,7 +58,7 @@ const Login = () => {
             </label>
             <button
               type="submit"
-              className="bg-fuchsia-400 text-white py-2 px-5 mt-6 font-bold rounded hover:bg-fuchsia-600 float-right"
+              className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
             >
               Einloggen
             </button>
@@ -68,7 +68,7 @@ const Login = () => {
 
       <ToastContainer
         toastClassName={() =>
-          "relative flex justify-between p-1 rounded-lg overflow-hidden text-red-400 bg-red-100 border border-red-500 shadow-lg mt-3"
+          "relative flex justify-between p-1 rounded-lg overflow-hidden text-red-400 bg-red-100 border border-red-500 shadow-lg mt-3 sm:mb-0 mb-4 sm:mx-0 mx-4"
         }
         bodyClassName={() => "flex text-sm font-semibold block p-3 w-full"}
         position="bottom-center"

@@ -41,7 +41,7 @@ export default function GameEnd({
   }
 
   return (
-    <div className="flex flex-col items-center justify-start w-full h-full pt-24 pb-14">
+    <div className="flex flex-col items-center justify-start sm:justify-center flex-auto w-full h-full">
       <Loading isLoading={isLoading} />
       {!isLoading && pollSummary.length > 0 && (
         <div className="flex flex-col justify-start items-start p-4 mx-5 min-h-[400px] w-full max-w-[700px] text-gray-700 bg-slate-100 border border-slate-300 rounded-lg shadow-lg">
@@ -80,7 +80,59 @@ export default function GameEnd({
                     <div className="">
                       {i + 1}. <span>{point[0]}</span>
                     </div>
-                    <div className="pt-[6px]">
+                    <div className="pt-[4px]">
+                      <Image
+                        src={getEmoji(point[0], roomRefId)}
+                        width={18}
+                        height={18}
+                        alt=""
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-1 font-mono font-semibold leading-tight tracking-tight text-fuchsia-600">
+                    {point[1]} Punkte
+                  </div>
+                </div>
+              );
+            })}
+            {pollSummary.map((point, i) => {
+              if (i === 0) return;
+              return (
+                <div
+                  className="flex items-center justify-center gap-1"
+                  key={point[0]}
+                >
+                  <div className="flex gap-1">
+                    <div className="">
+                      {i + 1}. <span>{point[0]}</span>
+                    </div>
+                    <div className="pt-[4px]">
+                      <Image
+                        src={getEmoji(point[0], roomRefId)}
+                        width={18}
+                        height={18}
+                        alt=""
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-1 font-mono font-semibold leading-tight tracking-tight text-fuchsia-600">
+                    {point[1]} Punkte
+                  </div>
+                </div>
+              );
+            })}
+            {pollSummary.map((point, i) => {
+              if (i === 0) return;
+              return (
+                <div
+                  className="flex items-center justify-center gap-1"
+                  key={point[0]}
+                >
+                  <div className="flex gap-1">
+                    <div className="">
+                      {i + 1}. <span>{point[0]}</span>
+                    </div>
+                    <div className="pt-[4px]">
                       <Image
                         src={getEmoji(point[0], roomRefId)}
                         width={18}
