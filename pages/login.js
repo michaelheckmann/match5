@@ -5,6 +5,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../utilities/toast";
 import makeRequest from "../utilities/makeRequest";
+import Router from "next/router";
+import useWindowDimensions from "../utilities/useWindowDimensions";
 
 const CloseButton = ({ closeToast }) => (
   <div onClick={closeToast} className="pr-1 text-red-500">
@@ -12,9 +14,19 @@ const CloseButton = ({ closeToast }) => (
   </div>
 );
 
-const Login = () => {
+const Login = ({ isAuthenticated }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  const { height, width } = useWindowDimensions();
+  useEffect(() => {
+    let vh = height * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  }, [height]);
+
+  useEffect(() => {
+    if (isAuthenticated) Router.push("/");
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -39,30 +51,32 @@ const Login = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="flex items-center justify-center w-screen h-screen text-gray-700 bg-gray-100 px-7 overflow-x-hidden">
-        <div className="bg-white rounded-lg shadow-lg p-9">
-          <form onSubmit={handleSubmit}>
-            <label className="block">
-              <span className="block mb-4 text-lg font-bold">Passwort</span>
-              <input
-                type="text"
-                className="block w-full h-10 pr-12 font-mono text-center border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm sm:placeholder:text-base placeholder:text-sm"
-                placeholder="Passwort eingeben"
-                value={password}
-                autoComplete="off"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (!error) setError("");
-                }}
-              ></input>
-            </label>
-            <button
-              type="submit"
-              className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
-            >
-              Einloggen
-            </button>
-          </form>
+      <div className="absolute inset-0">
+        <div className="flex items-center justify-center w-screen h-screen overflow-x-hidden text-gray-700 bg-gray-100 px-7">
+          <div className="bg-white rounded-lg shadow-lg p-9">
+            <form onSubmit={handleSubmit}>
+              <label className="block">
+                <span className="block mb-4 text-lg font-bold">Passwort</span>
+                <input
+                  type="text"
+                  className="block w-full h-10 pr-12 font-mono text-center border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm sm:placeholder:text-base placeholder:text-sm"
+                  placeholder="Passwort eingeben"
+                  value={password}
+                  autoComplete="off"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (!error) setError("");
+                  }}
+                ></input>
+              </label>
+              <button
+                type="submit"
+                className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
+              >
+                Einloggen
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 

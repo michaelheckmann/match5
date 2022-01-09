@@ -46,3 +46,10 @@
   appearance: none;
   min-width: 140px;
 }
+
+.h-screen-custom {
+  height: calc(var(--vh) * 100);
+}
+.min-h-screen-custom {
+  min-height: calc(var(--vh) * 100);
+}

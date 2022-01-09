@@ -18,6 +18,7 @@ import Loading from "../components/Loading";
 import Image from "next/image";
 import makeRequest from "../utilities/makeRequest";
 import { CgArrowsExchangeAlt } from "react-icons/cg";
+import useWindowDimensions from "../utilities/useWindowDimensions";
 
 const displayTitle = (gameState) => {
   let round = 0;
@@ -74,6 +75,12 @@ export default function Room({
     roundTwoCategoriesProp
   );
   const [pollPage, setPollPage] = useState(pollPageProp);
+
+  const { height, width } = useWindowDimensions();
+  useEffect(() => {
+    let vh = height * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  }, [height]);
 
   useEffect(() => {
     setIsLoading(true);
