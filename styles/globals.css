@@ -38,7 +38,7 @@
 .select-triangle {
   background-image: url(http://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/br_down.png);
   background-repeat: no-repeat;
-  background-position: right 5px top 13px; /* Change the px value here to change the distance */
+  background-position: right 10px top 13px; /* Change the px value here to change the distance */
   background-size: 10px;
   -moz-appearance: none;
   -moz-appearance: none;

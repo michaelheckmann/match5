@@ -7,6 +7,7 @@ import {
 } from "../../utilities/constants";
 import Loading from "../Loading";
 import makeRequest from "../../utilities/makeRequest";
+import { motion, AnimatePresence } from "framer-motion";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
@@ -25,7 +26,7 @@ export default function Action({
   categories,
   isHost,
 }) {
-  const [intervalCounter, setIntervalCounter] = useState(300);
+  const [intervalCounter, setIntervalCounter] = useState(70);
   const [inputs, setInputs] = useState(Array(10).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [timerIsVisible, setTimerIsVisible] = useState(false);
@@ -37,6 +38,7 @@ export default function Action({
 
   const callbackFunc = (entries) => {
     const [entry] = entries;
+    console.log(entry.isIntersecting);
     setTimerIsVisible(entry.isIntersecting);
   };
 
@@ -127,22 +129,30 @@ export default function Action({
 
   return (
     <div className="flex flex-col items-center justify-start flex-auto w-full h-full">
-      <div className={(timerIsVisible ? "hidden " : "") + "sticky top-4"}>
-        <div
-          className={
-            (intervalCounter <= 10 && intervalCounter % 2 !== 0
-              ? "border-red-300 text-red-500 bg-red-200"
-              : "") +
-            (intervalCounter <= 10 && intervalCounter % 2 === 0
-              ? "border-red-400 text-red-600 bg-red-300"
-              : "") +
-            " px-3 py-2 font-mono text-xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-lg"
-          }
-        >
-          {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
-          {(intervalCounter % 60).toString().padStart(2, "0")}
-        </div>
-      </div>
+      <AnimatePresence>
+        {!timerIsVisible && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            className={
+              (intervalCounter <= 10 && intervalCounter % 2 !== 0
+                ? "border-red-300 text-red-500 bg-red-200 shadow-red-200"
+                : "") +
+              (intervalCounter <= 10 && intervalCounter % 2 === 0
+                ? "border-red-400 text-red-600 bg-red-300 shadow-red-300"
+                : "") +
+              (intervalCounter === 60 || intervalCounter === 150
+                ? "border-red-400 text-red-600 bg-red-300 shadow-red-300"
+                : "") +
+              " px-3 py-2 font-mono transition text-xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-lg sticky top-4"
+            }
+          >
+            {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
+            {(intervalCounter % 60).toString().padStart(2, "0")}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="grid w-full grid-cols-1 gap-5 px-3 sm:grid-cols-3 sm:gap-0 place-items-center">
         {/* Countdown Widget */}
         <div className="flex items-start justify-center flex-grow sm:justify-start">
@@ -150,12 +160,15 @@ export default function Action({
             ref={timerRef}
             className={
               (intervalCounter <= 10 && intervalCounter % 2 !== 0
-                ? "border-red-300 text-red-500 bg-red-200"
+                ? "border-red-300 text-red-500 bg-red-200 shadow-red-200"
                 : "") +
               (intervalCounter <= 10 && intervalCounter % 2 === 0
-                ? "border-red-400 text-red-600 bg-red-300"
+                ? "border-red-400 text-red-600 bg-red-300 shadow-red-300"
                 : "") +
-              " px-4 py-3 font-mono text-2xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm"
+              (intervalCounter === 60 || intervalCounter === 150
+                ? "border-red-400 text-red-600 bg-red-300 shadow-red-300"
+                : "") +
+              " px-4 py-3 font-mono transition text-2xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-sm"
             }
           >
             {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
@@ -195,10 +208,32 @@ export default function Action({
 
       {/* Input fields */}
       {!isLoading && (
-        <div className="flex flex-wrap justify-center w-full max-w-4xl gap-10 px-4 mt-14">
+        <motion.div
+          variants={{
+            hidden: {
+              opacity: 0,
+            },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.2,
+              },
+            },
+          }}
+          initial="hidden"
+          animate="show"
+          className="flex flex-wrap justify-center w-full max-w-4xl gap-10 px-4 mt-14"
+        >
           {combinations.map((c, i) => {
             return (
-              <div className="flex flex-[0_0_40%] min-w-[300px] gap-2" key={i}>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, scale: 0.7 },
+                  show: { opacity: 1, scale: 1 },
+                }}
+                className="flex flex-[0_0_40%] min-w-[300px] gap-2"
+                key={i}
+              >
                 <div
                   className={`w-8 h-8 rounded shrink-0 bg-${c[0]}-200 border border-${c[0]}-500 flex justify-center items-center text-${c[0]}-500`}
                 >
@@ -218,12 +253,12 @@ export default function Action({
                   onChange={(e) => handleChange(e, i)}
                   className="block w-full h-8 pl-2 pr-2 text-gray-700 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:text-gray-500 disabled:cursor-not-allowed"
                 />
-              </div>
+              </motion.div>
             );
           })}
           {/* For Tailwind JIT */}
           <div className="hidden text-slate-500 text-amber-500"></div>
-        </div>
+        </motion.div>
       )}
 
       {/* V SPACER */}

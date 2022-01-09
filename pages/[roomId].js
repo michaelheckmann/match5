@@ -17,6 +17,7 @@ import Head from "next/head";
 import Loading from "../components/Loading";
 import Image from "next/image";
 import makeRequest from "../utilities/makeRequest";
+import { CgArrowsExchangeAlt } from "react-icons/cg";
 
 const displayTitle = (gameState) => {
   let round = 0;
@@ -124,6 +125,16 @@ export default function Room({
       }
     });
 
+    channel.bind("hostChanged", ({ host }) => {
+      if (host === userNameProp) {
+        setIsHost(true);
+        return showToast(`Du bist nun Spielleiter`, "default", 4000);
+      } else {
+        setIsHost(false);
+        return showToast(`${host} ist nun Spielleiter`, "default", 4000);
+      }
+    });
+
     channel.bind("categoriesSet", (categoriesSetData) => {
       switch (categoriesSetData.round) {
         case "roundOne":
@@ -172,6 +183,21 @@ export default function Room({
       }
     });
 
+    channel.bind("triggerSelectNot", (triggerSelectData) => {
+      if (triggerSelectData.addresseeName !== userNameProp) return;
+
+      switch (triggerSelectData.message) {
+        case "maxPointsAwarded":
+          return showToast(
+            `${triggerSelectData.userName} findert dein Wort höchst kreativ`,
+            "success",
+            3000
+          );
+        default:
+          return;
+      }
+    });
+
     channel.bind("pageChanged", (pageChangedData) => {
       setPollPage(pageChangedData.pollPage);
     });
@@ -202,10 +228,19 @@ export default function Room({
     };
   }, []);
 
+  async function changeHost() {
+    if (isHost) return;
+    await makeRequest("room/setHost", {
+      host: userNameProp,
+      roomRefId: roomRefIdProp,
+      roomName: roomNameProp,
+    });
+  }
+
   return (
     <div
       className={
-        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen overflow-x-hidden"
+        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen"
       }
     >
       <Head>
@@ -217,15 +252,27 @@ export default function Room({
       {/* Header */}
       <div className="grid w-full grid-cols-2 p-4 sm:grid-cols-3">
         <div className="flex flex-col text-sm sm:text-base">
-          <div className="">
+          <div className="flex gap-1">
             <span className="font-bold">Raum:</span> {roomNameProp}
           </div>
-          <div className="">
-            <span className="font-bold">Spielleiter:</span> {hostNameProp}
+          <div className="flex items-center gap-1">
+            <span className="font-bold">Spielleiter:</span>
+            {hostNameProp}{" "}
+            <span
+              className={
+                (isHost
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-fuchsia-400 hover:text-fuchsia-500 cursor-pointer hover:scale-105 hover:rotate-180") +
+                " inline-block text-xl font-bold tracking-tighter transition"
+              }
+              onClick={changeHost}
+            >
+              <CgArrowsExchangeAlt />
+            </span>
           </div>
           {displayTitle(gameState)[0] > 0 && (
-            <div className="">
-              <span className="font-bold">Runde:</span>{" "}
+            <div className="flex gap-1">
+              <span className="font-bold">Runde:</span>
               {displayTitle(gameState)[0]}
             </div>
           )}

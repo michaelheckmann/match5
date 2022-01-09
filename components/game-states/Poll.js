@@ -8,6 +8,7 @@ import Loading from "../Loading";
 import getEmoji from "../../utilities/getEmoji";
 import Image from "next/image";
 import makeRequest from "../../utilities/makeRequest";
+import { motion } from "framer-motion";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
@@ -148,11 +149,21 @@ export default function Poll({
 
   async function handleSelectChange(e, player, i) {
     if (player === userName) return;
+
     setPolls((p) => {
       let obj = JSON.parse(JSON.stringify(p));
       obj[player].points[i] = parseInt(e.target.value);
       return obj;
     });
+
+    if (parseInt(e.target.value) === 4) {
+      await makeRequest("triggerSelectNot", {
+        roomName: roomName,
+        userName: userName,
+        message: "maxPointsAwarded",
+        addresseeName: player,
+      });
+    }
   }
 
   async function newRound() {
@@ -243,11 +254,12 @@ export default function Poll({
                           )}
                         </div>
                         {player !== userName && (
-                          <div className="flex items-center justify-center row-span-2 text-sm text-gray-700 rounded sm:text-base sm:block place-items-center">
+                          <div className="flex items-center justify-end row-span-2 text-sm text-gray-700 rounded sm:text-base sm:block place-items-center">
                             <select
-                              className=" select-triangle px-3 py-2 text-sm bg-slate-200 rounded-sm active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none max-h-[40px]"
+                              className=" select-triangle px-3 py-2 text-sm bg-slate-200 rounded-sm active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none max-h-[40px] disabled:cursor-not-allowed"
                               value={polls[player].points[i]}
                               onChange={(e) => handleSelectChange(e, player, i)}
+                              disabled={!polls[player].points[i]}
                             >
                               <option value="4">Höchst kreativ</option>
                               <option value="3">Echt gut</option>
@@ -258,7 +270,7 @@ export default function Poll({
                           </div>
                         )}
                         {player === userName && (
-                          <div className="flex items-center justify-center row-span-2 text-sm text-gray-700 rounded sm:text-base sm:block place-items-center">
+                          <div className="flex items-center justify-end row-span-2 text-sm text-gray-700 rounded sm:text-base sm:block place-items-center">
                             <select
                               className="px-3 py-2 text-sm rounded-sm appearance-none cursor-not-allowed bg-slate-200 active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none min-w-[140px]"
                               disabled={true}
@@ -278,7 +290,7 @@ export default function Poll({
                       <button
                         disabled={!isHost}
                         onClick={() => changePageNumber(pollPage - 1)}
-                        className="px-5 py-2 mt-20 font-bold border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-5 py-2 mt-20 font-bold transition border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:-rotate-3"
                       >
                         Zurück
                       </button>
@@ -286,7 +298,7 @@ export default function Poll({
                     <button
                       disabled={!isHost}
                       onClick={() => changePageNumber(pollPage + 1)}
-                      className="px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2 mt-6 font-bold text-white transition rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:rotate-3"
                     >
                       Weiter
                     </button>
@@ -299,21 +311,26 @@ export default function Poll({
           {showResultScreen && (
             <div className="flex sm:text-base text-sm justify-start flex-col sm:justify-center items-center sm:p-4 sm:min-h-[400px] w-full sm:max-w-[600px] text-gray-700 sm:bg-slate-100 sm:border border-slate-300 sm:rounded-lg sm:shadow-lg">
               {/* Header */}
-              <div className="flex justify-between w-full px-2 pb-2 mb-5 border-b-2 border-slate-300">
+              <div
+                className={`grid grid-cols-${
+                  round === "roundOne" ? 2 : 3
+                } w-full px-2 pb-2 mb-5 border-b-2 border-slate-300`}
+              >
                 <div className="font-bold">Spieler</div>
                 {["roundOne", "roundTwo"].includes(round) && (
                   <div
                     className={
                       (round === "roundOne"
                         ? "text-fuchsia-500 "
-                        : "text-fuchsia-300 ") + "font-mono font-semibold"
+                        : "text-fuchsia-300 ") +
+                      "font-mono font-semibold place-self-end"
                     }
                   >
                     Runde 1
                   </div>
                 )}
                 {["roundTwo"].includes(round) && (
-                  <div className="font-mono font-semibold text-fuchsia-500">
+                  <div className="font-mono font-semibold place-self-end text-fuchsia-500">
                     Runde 2
                   </div>
                 )}
@@ -324,7 +341,9 @@ export default function Poll({
                 return (
                   <div
                     key={pollSummary[0]}
-                    className="flex justify-between w-full mb-5"
+                    className={`grid w-full grid-cols-${
+                      round === "roundOne" ? 2 : 3
+                    } mb-5 px-2`}
                   >
                     <div className="flex items-center justify-start gap-1 font-bold">
                       <div className="">
@@ -340,33 +359,41 @@ export default function Poll({
                     </div>
                     {/* Point summary round one */}
                     {["roundOne", "roundTwo"].includes(round) && (
-                      <div className="font-mono font-semibold text-fuchsia-300">
-                        {pollSummary[1]} Punkte
+                      <div className="font-mono font-semibold text-fuchsia-300 place-self-end">
+                        {Math.round(pollSummary[1] * 10) / 10} Punkte
                       </div>
                     )}
 
                     {/* Point summary round two */}
                     {["roundTwo"].includes(round) && (
-                      <div className="font-mono font-semibold text-fuchsia-300">
-                        {
+                      <div className="font-mono font-semibold text-fuchsia-300 place-self-end">
+                        {Math.round(
                           roundTwoPollSummarys.find(
                             (p) => p[0] === pollSummary[0]
-                          )[1]
-                        }{" "}
+                          )[1] * 10
+                        ) / 10}{" "}
                         Punkte
                       </div>
                     )}
                   </div>
                 );
               })}
+              {/* For Tailwind JIT */}
+              <div className="hidden grid-cols-2 grid-cols-3"></div>
+
               <div className="flex items-end justify-end w-full h-full mt-auto">
-                <button
+                <motion.button
+                  whileHover={{
+                    scale: 1.03,
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", bounce: 0.5 }}
                   disabled={!isHost}
                   className="px-5 py-2 mt-10 font-bold text-white rounded sm:mt-6 bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={newRound}
                 >
                   {round !== "roundTwo" ? "Nächste Runde" : "Abschließen"}
-                </button>
+                </motion.button>
               </div>
             </div>
           )}

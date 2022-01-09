@@ -219,27 +219,32 @@ export default function Dice({
       )}
 
       {!isLoading && !showLabel && categoriesProp.length === 0 && (
-        <button
+        <motion.button
+          whileHover={{
+            scale: 1.03,
+          }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: "spring", bounce: 0.5 }}
           onClick={stopCounter}
           disabled={!isHost}
           className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Anhalten
-        </button>
+        </motion.button>
       )}
       {!isLoading && showLabel && (
         <div className="flex flex-col gap-5 mt-20 sm:flex-row">
           <button
             onClick={rollDice}
             disabled={!isHost}
-            className="px-6 py-3 font-bold border rounded sm:px-5 sm:py-2 text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 font-bold transition border rounded sm:px-5 sm:py-2 text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:-rotate-3"
           >
             Nochmal würfeln
           </button>
           <button
             onClick={startRound}
             disabled={!isHost}
-            className="order-first px-6 py-3 font-bold text-white rounded sm:px-5 sm:py-2 bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed sm:order-none"
+            className="order-first px-6 py-3 font-bold text-white transition rounded sm:px-5 sm:py-2 bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed sm:order-none disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:rotate-3"
           >
             Runde starten
           </button>
