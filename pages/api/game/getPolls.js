@@ -7,7 +7,7 @@ export default async function handler(req, res) {
         q.Let(
           {
             match: q.Match(
-              q.Index("polls__inputSetId_evaluator"),
+              q.Index("polls--inputSetId+evaluator"),
               inputSetId,
               req.body.evaluator
             ),

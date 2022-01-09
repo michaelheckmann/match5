@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   const faunaQuery = client.query(
     q.Map(
       q.Paginate(
-        q.Match(q.Index("findByRoomRefIdAndRound"), [
+        q.Match(q.Index("inputSets--roomRefId+round"), [
           req.body.roomRefId,
           req.body.round,
         ])

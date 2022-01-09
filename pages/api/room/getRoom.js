@@ -2,7 +2,7 @@ export async function getRoom(roomName) {
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Map(
-      q.Paginate(q.Match(q.Index("findByName"), roomName)),
+      q.Paginate(q.Match(q.Index("rooms--name"), roomName)),
       q.Lambda("room", q.Get(q.Var("room")))
     )
   );
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   const { client, q } = require("../../../utilities/db");
   const faunaQuery = client.query(
     q.Map(
-      q.Paginate(q.Match(q.Index("findByName"), req.body.roomName)),
+      q.Paginate(q.Match(q.Index("rooms--name"), req.body.roomName)),
       q.Lambda("room", q.Get(q.Var("room")))
     )
   );

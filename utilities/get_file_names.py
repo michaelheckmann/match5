@@ -1,4 +1,4 @@
 import os
 
-mylist = os.listdir("../public/emojis")
+mylist = os.listdir("./public/emojis")
 print(mylist)
