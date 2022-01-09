@@ -26,7 +26,9 @@ export default function Action({
   categories,
   isHost,
 }) {
-  const [intervalCounter, setIntervalCounter] = useState(70);
+  const [intervalCounter, setIntervalCounter] = useState(
+    process.env.NODE_ENV === "development" ? 30 : 300
+  );
   const [inputs, setInputs] = useState(Array(10).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [timerIsVisible, setTimerIsVisible] = useState(false);

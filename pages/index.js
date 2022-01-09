@@ -186,7 +186,7 @@ export default function Home({ isAuthenticated }) {
       </Head>
 
       <div className="absolute inset-0">
-        <div className="relative flex items-center justify-center w-screen h-screen-custom overflow-x-hidden text-gray-700 bg-gray-100">
+        <div className="relative flex items-center justify-center w-screen overflow-x-hidden text-gray-700 bg-gray-100 h-screen-custom">
           <div className="w-full">
             <h1 className="absolute top-28 sm:top-32 left-1/2 -ml-[200px] w-[400px] font-bold text-2xl sm:text-3xl text-center text-fuchsia-600 z-10">
               Match 5: Lobby

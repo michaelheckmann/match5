@@ -52,7 +52,7 @@ const Login = ({ isAuthenticated }) => {
       </Head>
 
       <div className="absolute inset-0">
-        <div className="flex items-center justify-center w-screen h-screen overflow-x-hidden text-gray-700 bg-gray-100 px-7">
+        <div className="flex items-center justify-center w-screen overflow-x-hidden text-gray-700 bg-gray-100 h-screen-custom px-7">
           <div className="bg-white rounded-lg shadow-lg p-9">
             <form onSubmit={handleSubmit}>
               <label className="block">

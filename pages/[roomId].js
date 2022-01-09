@@ -247,7 +247,7 @@ export default function Room({
   return (
     <div
       className={
-        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen"
+        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen-custom"
       }
     >
       <Head>
