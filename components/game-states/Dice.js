@@ -1,21 +1,16 @@
-import React from "react";
 import { useEffect, useState, useRef } from "react";
+
+import { motion } from "framer-motion";
+
+import Loading from "../Loading";
+
 import {
   roundOneCategories,
   roundTwoCategories,
   categoryIcons,
+  catColorMap,
 } from "../../utilities/constants";
-import { motion } from "framer-motion";
-import Loading from "../Loading";
 import makeRequest from "../../utilities/makeRequest";
-
-const catColorMap = {
-  0: "bg-red-200 text-red-500 shadow-red-200",
-  1: "bg-blue-200 text-blue-500 shadow-blue-200",
-  2: "bg-slate-200 text-slate-600 shadow-slate-200",
-  3: "bg-amber-200 text-amber-600 shadow-amber-200",
-  4: "bg-purple-200 text-purple-500 shadow-purple-200",
-};
 
 export default function Dice({
   players,
@@ -248,6 +243,11 @@ export default function Dice({
           >
             Runde starten
           </button>
+        </div>
+      )}
+      {!isLoading && !isHost && (
+        <div className="max-w-[380px] italic text-center mt-5 sm:text-sm text-xs text-slate-400">
+          Der Spielleiter wählt zufällig die Kategorien aus
         </div>
       )}
       {/* V SPACER */}

@@ -17,7 +17,7 @@ const channels = new Channels({
 export default async function handler(req, res) {
   try {
     await channels.trigger(
-      req.body.roomName,
+      `presence-${req.body.roomName}`,
       "hostChanged",
       { host: req.body.host },
       () => {

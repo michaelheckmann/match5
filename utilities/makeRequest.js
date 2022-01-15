@@ -1,6 +1,7 @@
 export default async function makeRequest(url, body, returnJSON = false) {
+  console.log("URL", url);
   try {
-    const res = await fetch("api/" + url, {
+    const res = await fetch("/api/" + url, {
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",

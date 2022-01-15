@@ -132,10 +132,10 @@ export default function Poll({
   async function changePageNumber(nextPageNumber) {
     setIsLoading(true);
 
-    await makeRequest("game/submitPoll", {
-      userName: userName,
-      polls: polls,
-    });
+    // await makeRequest("game/submitPoll", {
+    //   userName: userName,
+    //   polls: polls,
+    // });
 
     await makeRequest("game/setPageNumber", {
       pollPage: nextPageNumber,
@@ -265,7 +265,9 @@ export default function Poll({
                               <option value="3">Echt gut</option>
                               <option value="2">Nicht schlecht</option>
                               <option value="1">So la la</option>
-                              <option value="0">Nicht ausgefüllt</option>
+                              <option value="0" disabled={true}>
+                                Nicht ausgefüllt
+                              </option>
                             </select>
                           </div>
                         )}
@@ -360,7 +362,10 @@ export default function Poll({
                     {/* Point summary round one */}
                     {["roundOne", "roundTwo"].includes(round) && (
                       <div className="font-mono font-semibold text-fuchsia-300 place-self-end">
-                        {Math.round(pollSummary[1] * 10) / 10} Punkte
+                        {Math.round(pollSummary[1] * 10) / 10}{" "}
+                        {Math.round(pollSummary[1] * 10) / 10 === 1
+                          ? "Punkt"
+                          : "Punkte"}
                       </div>
                     )}
 
@@ -372,7 +377,15 @@ export default function Poll({
                             (p) => p[0] === pollSummary[0]
                           )[1] * 10
                         ) / 10}{" "}
-                        Punkte
+                        {Math.round(
+                          roundTwoPollSummarys.find(
+                            (p) => p[0] === pollSummary[0]
+                          )[1] * 10
+                        ) /
+                          10 ===
+                        1
+                          ? "Punkt"
+                          : "Punkte"}
                       </div>
                     )}
                   </div>

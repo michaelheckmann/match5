@@ -1,43 +1,32 @@
+import { useEffect, useState } from "react";
+
 import Head from "next/head";
 import Router from "next/router";
+
 import Cookies from "universal-cookie";
-import { useState, useEffect } from "react";
+
 import Modal from "react-modal";
-import React from "react";
-import { animalNames } from "../utilities/constants";
+import { motion } from "framer-motion";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../utilities/toast";
-import Loading from "../components/Loading";
-import makeRequest from "../utilities/makeRequest";
-import { motion } from "framer-motion";
-import useWindowDimensions from "../utilities/useWindowDimensions";
+import { showToast, CloseButton } from "../utilities/toast";
 
+import Loading from "../components/Loading";
+import Pusher from "pusher-js";
+
+import { animalNames } from "../utilities/constants";
+import makeRequest from "../utilities/makeRequest";
+
+// Anchor the modal, element set in _app.js
 Modal.setAppElement("#modal-root");
 
-const CloseButton = ({ closeToast }) => (
-  <div onClick={closeToast} className="pr-1 text-red-500">
-    ✕
-  </div>
-);
-
-export default function Home({ isAuthenticated }) {
-  // First check if the user has entered the correct password
-  useEffect(() => {
-    if (!isAuthenticated) Router.push("/login");
-  }, []);
-
+export default function Home() {
   const [playerName, setPlayerName] = useState("");
   const [joinRoomName, setJoinRoomName] = useState("");
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
   const [joinModalIsOpen, setJoinModalIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const { height, width } = useWindowDimensions();
-  useEffect(() => {
-    let vh = height * 0.01;
-    document.documentElement.style.setProperty("--vh", `${vh}px`);
-  }, [height]);
 
   function handleChange(e) {
     if (e.target.name === "playerName") setPlayerName(e.target.value);
@@ -72,7 +61,6 @@ export default function Home({ isAuthenticated }) {
         { roomName: animal },
         true
       );
-
       // No room found
       if (json.data.length === 0) {
         roomName = animal;
@@ -117,7 +105,7 @@ export default function Home({ isAuthenticated }) {
     });
 
     // Reroute to room
-    Router.push(`/${roomName}`).then(() => {
+    Router.push(`/room/${roomName.toLowerCase()}`).then(() => {
       setIsLoading(false);
     });
   }
@@ -172,7 +160,7 @@ export default function Home({ isAuthenticated }) {
     });
 
     // Reroute to room
-    Router.push(`/${joinRoomName}`).then(() => {
+    Router.push(`/room/${joinRoomName.toLowerCase()}`).then(() => {
       setIsLoading(false);
     });
   }

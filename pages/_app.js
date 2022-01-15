@@ -1,35 +1,21 @@
 import "../styles/globals.css";
-import App from "next/app";
-import Cookies from "universal-cookie";
-import { validatePassword } from "./api/auth";
+import { useEffect } from "react";
+import useWindowDimensions from "../utilities/useWindowDimensions";
 
 function MyApp({ Component, pageProps }) {
+  // Calculate custom vh property to fix Safari issue
+  const { height, _ } = useWindowDimensions();
+  useEffect(() => {
+    let vh = height * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  }, [height]);
+
   return (
-    <>
+    <div className="flex items-center justify-center bg-gray-100">
       <Component {...pageProps} />
       <div id="modal-root" />
-    </>
+    </div>
   );
 }
-
-MyApp.getInitialProps = async (appContext) => {
-  const appProps = await App.getInitialProps(appContext);
-
-  if (!appContext.ctx.req || !appContext.ctx.req.headers) {
-    appProps.pageProps.isAuthenticated = false;
-    return { ...appProps };
-  }
-
-  const cookies = new Cookies(appContext.ctx.req.headers.cookie);
-  const password = cookies.get("password");
-
-  if (!password) {
-    appProps.pageProps.isAuthenticated = false;
-    return { ...appProps };
-  }
-
-  appProps.pageProps.isAuthenticated = await validatePassword(password);
-  return { ...appProps };
-};
 
 export default MyApp;

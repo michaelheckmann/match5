@@ -1,43 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
 import Head from "next/head";
+import Router from "next/router";
+
 import Cookies from "universal-cookie";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../utilities/toast";
+import { showToast, CloseButton } from "../utilities/toast";
+
 import makeRequest from "../utilities/makeRequest";
-import Router from "next/router";
-import useWindowDimensions from "../utilities/useWindowDimensions";
 
-const CloseButton = ({ closeToast }) => (
-  <div onClick={closeToast} className="pr-1 text-red-500">
-    ✕
-  </div>
-);
-
-const Login = ({ isAuthenticated }) => {
+const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const { height, width } = useWindowDimensions();
-  useEffect(() => {
-    let vh = height * 0.01;
-    document.documentElement.style.setProperty("--vh", `${vh}px`);
-  }, [height]);
-
-  useEffect(() => {
-    if (isAuthenticated) Router.push("/");
-  }, []);
-
+  // Handle passwort submit event
   async function handleSubmit(e) {
     e.preventDefault();
     const json = await makeRequest("auth", { password: password }, true);
-
     if (json.authenticated) {
       const cookies = new Cookies();
       cookies.set("password", password, {
         path: "/",
       });
-      window.location.href = "/";
+      Router.push("/");
     } else {
       showToast("Ungültiges Passwort", "error");
     }

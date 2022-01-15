@@ -1,24 +1,27 @@
-import React from "react";
-import Cookies from "universal-cookie";
 import { useState, useEffect } from "react";
-import { getRoom } from "./api/room/getRoom";
-import Router from "next/router";
-import Pusher from "pusher-js";
-import getEmoji from "../utilities/getEmoji";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../utilities/toast";
-import Lobby from "../components/game-states/Lobby";
-import Dice from "../components/game-states/Dice";
-import Action from "../components/game-states/Action";
-import Poll from "../components/game-states/Poll";
-import GameEnd from "../components/game-states/GameEnd";
-import Head from "next/head";
-import Loading from "../components/Loading";
+
 import Image from "next/image";
-import makeRequest from "../utilities/makeRequest";
+import Head from "next/head";
+
+import Cookies from "universal-cookie";
+import Pusher from "pusher-js";
+
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
+import { showToast, CloseButton } from "../../utilities/toast";
+
 import { CgArrowsExchangeAlt } from "react-icons/cg";
-import useWindowDimensions from "../utilities/useWindowDimensions";
+
+import Lobby from "../../components/game-states/Lobby";
+import Dice from "../../components/game-states/Dice";
+import Action from "../../components/game-states/Action";
+import Poll from "../../components/game-states/Poll";
+import GameEnd from "../../components/game-states/GameEnd";
+import Loading from "../../components/Loading";
+
+import { getRoom } from "../api/room/getRoom";
+import getEmoji from "../../utilities/getEmoji";
+import makeRequest from "../../utilities/makeRequest";
 
 const displayTitle = (gameState) => {
   let round = 0;
@@ -35,12 +38,6 @@ const displayTitle = (gameState) => {
   return [round, title];
 };
 
-const CloseButton = ({ closeToast }) => (
-  <div onClick={closeToast} className="">
-    ✕
-  </div>
-);
-
 const contextClass = {
   success: "text-green-400 bg-green-100 border-green-500",
   error: "text-red-400 bg-red-100 border-red-500",
@@ -51,8 +48,6 @@ const contextClass = {
 };
 
 export default function Room({
-  isAuthenticated,
-
   roomNameProp,
   userNameProp,
   playerNamesProp,
@@ -76,39 +71,27 @@ export default function Room({
   );
   const [pollPage, setPollPage] = useState(pollPageProp);
 
-  const { height, width } = useWindowDimensions();
-  useEffect(() => {
-    let vh = height * 0.01;
-    document.documentElement.style.setProperty("--vh", `${vh}px`);
-  }, [height]);
-
   useEffect(() => {
     setIsLoading(true);
-
-    // First check if the user has entered the correct password
-    if (!isAuthenticated) {
-      setIsLoading(false);
-      Router.push("/login");
-    }
-    // Check if the user has a name
-    if (!userNameProp) {
-      setIsLoading(false);
-      Router.push("/");
-    }
-
     if (userNameProp === hostNameProp) setIsHost(true);
 
     // Conig the Pusher channels
     let channels = new Pusher("e873b2def22638cce881", {
       cluster: "eu",
+      authEndpoint: "/api/pusherAuth",
     });
 
-    let channel = channels.subscribe(roomNameProp);
+    let channel = channels.subscribe(`presence-${roomNameProp}`);
 
     channel.bind("playerJoined", (newPlayer) => {
       setPlayers((o) => [...o, newPlayer]);
       if (newPlayer === userNameProp) return;
       showToast(`${newPlayer} ist dem Raum beigetreten`, "default", 5000);
+    });
+
+    channel.bind("playerLeft", (removedPlayer) => {
+      setPlayers((o) => o.filter((p) => p !== removedPlayer));
+      showToast(`${removedPlayer} hat den Raum verlassen`, "default", 5000);
     });
 
     channel.bind("gameStateChanged", (newGameStateData) => {
@@ -209,11 +192,24 @@ export default function Room({
       setPollPage(pageChangedData.pollPage);
     });
 
+    channel.bind("pusher:member_removed", async (member) => {
+      // isHost state not yet available
+      if (userNameProp === hostNameProp) {
+        console.log(member.id, member.info.name);
+        await makeRequest("room/leaveRoom", {
+          roomRefId: roomRefIdProp,
+          userName: member.info.name,
+          roomName: roomNameProp,
+        });
+      }
+    });
+
     // Wait until the subscription has succeeded
-    channel.bind("pusher:subscription_succeeded", async () => {
+    channel.bind("pusher:subscription_succeeded", async ({ members }) => {
       // If the user has not created the room, add him to the players
       // If the player is already in the room, don't add him again
-      if (userNameProp !== hostNameProp && !players.includes(userNameProp)) {
+      console.log("pusher:subscription_succeeded");
+      if (playerNamesProp.every((p) => p !== userNameProp)) {
         await makeRequest("room/joinRoom", {
           roomRefId: roomRefIdProp,
           userName: userNameProp,
@@ -221,6 +217,8 @@ export default function Room({
         });
       }
     });
+
+    console.log("channel.members", channel.members);
 
     channel.bind("pusher:subscription_error", (error) => {
       console.error(error);
@@ -247,7 +245,7 @@ export default function Room({
   return (
     <div
       className={
-        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen-custom"
+        "relative flex flex-col text-gray-700 bg-gray-100 min-h-screen-custom max-w-6xl w-full"
       }
     >
       <Head>
@@ -433,24 +431,29 @@ export default function Room({
   );
 }
 
+// By default room name in URL is lowercase
+// Room name in DB and Frontend is capital case
+function capFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 export async function getServerSideProps(context) {
   // Get the room data
-  const resRoom = await getRoom(context.params.roomId);
+  const resRoom = await getRoom(capFirstLetter(context.params.roomId));
 
   // Check if room exists
-  if (!resRoom) return { redirect: { destination: "/" } };
+  if (!resRoom) return { redirect: { destination: "/", permanent: false } };
 
   const rooms = resRoom.data;
-  if (rooms.length === 0) return { redirect: { destination: "/" } };
+  if (rooms.length === 0)
+    return { redirect: { destination: "/", permanent: false } };
 
   const cookies = new Cookies(context.req.headers.cookie);
   const userName = cookies.get("userName");
-
-  if (!userName) return { redirect: { destination: "/" } };
-
   const room = rooms[0].data;
   const refId = rooms[0].ref.id;
 
+  // will be passed to the page component as props
   return {
     props: {
       roomNameProp: room.name,
@@ -462,6 +465,6 @@ export async function getServerSideProps(context) {
       roundOneCategoriesProp: room.roundOneCategories,
       roundTwoCategoriesProp: room.roundTwoCategories,
       pollPageProp: room.pollPage,
-    }, // will be passed to the page component as props
+    },
   };
 }

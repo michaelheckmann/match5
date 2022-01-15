@@ -38,3 +38,9 @@ export const showToast = (s, type, duration = 7000) => {
       break;
   }
 };
+
+export const CloseButton = ({ closeToast }) => (
+  <div onClick={closeToast} className="pr-1 cursor-pointer">
+    ✕
+  </div>
+);

@@ -1,21 +1,17 @@
-import React from "react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+
+import { motion, AnimatePresence } from "framer-motion";
+import debounce from "lodash.debounce";
+
+import Loading from "../Loading";
+
 import {
   categoryIcons,
   combinations,
   colorNumberMap,
+  catColorMap,
 } from "../../utilities/constants";
-import Loading from "../Loading";
 import makeRequest from "../../utilities/makeRequest";
-import { motion, AnimatePresence } from "framer-motion";
-
-const catColorMap = {
-  0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
-  1: "bg-blue-200 text-blue-500 shadow-blue-200 border-blue-500",
-  2: "bg-slate-200 text-slate-600 shadow-slate-200 border-slate-500",
-  3: "bg-amber-200 text-amber-600 shadow-amber-200 border-amber-500",
-  4: "bg-purple-200 text-purple-500 shadow-purple-200 border-purple-500",
-};
 
 export default function Action({
   players,
@@ -40,7 +36,6 @@ export default function Action({
 
   const callbackFunc = (entries) => {
     const [entry] = entries;
-    console.log(entry.isIntersecting);
     setTimerIsVisible(entry.isIntersecting);
   };
 
@@ -50,10 +45,28 @@ export default function Action({
       setIntervalCounter((c) => c - 1);
     }, 1000);
 
+    fetchInputSet();
+
     return () => {
       clearInterval(interval.current);
+      debounceInput.cancel();
     };
   }, []);
+
+  async function fetchInputSet() {
+    const json = await makeRequest(
+      "game/getInputSet",
+      {
+        roomRefId: roomRefId,
+        round: round,
+        userName: userName,
+      },
+      true
+    );
+    if (json.data.length === 0) return;
+
+    setInputs(json.data[0].data.inputs);
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(callbackFunc, {
@@ -73,11 +86,12 @@ export default function Action({
       setIsLoading(true);
       clearInterval(interval.current);
       handleCounterFinished();
+      setIsLoading(false);
     }
   }, [intervalCounter]);
 
   async function handleCounterFinished() {
-    await makeRequest("game/createInputSet", {
+    await makeRequest("game/setInputSet", {
       roomName: roomName,
       inputs: inputs,
       userName: userName,
@@ -93,7 +107,6 @@ export default function Action({
         roomRefId: roomRefId,
       });
     }
-
     setIsLoading(false);
   }
 
@@ -129,6 +142,21 @@ export default function Action({
     }
   }
 
+  const debounceInput = useCallback(
+    debounce(async (debouncedInputs) => {
+      await makeRequest("game/setInputSet", {
+        roomName: roomName,
+        inputs: debouncedInputs,
+        userName: userName,
+        round: round,
+        roomRefId: roomRefId,
+      });
+    }, 2000),
+    []
+  );
+
+  useEffect(() => debounceInput(inputs), [inputs]);
+
   return (
     <div className="flex flex-col items-center justify-start flex-auto w-full h-full">
       <AnimatePresence>
@@ -155,9 +183,9 @@ export default function Action({
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="grid w-full grid-cols-1 gap-5 px-3 sm:grid-cols-3 sm:gap-0 place-items-center">
+      <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-0 place-items-center">
         {/* Countdown Widget */}
-        <div className="flex items-start justify-center flex-grow sm:justify-start">
+        <div className="flex items-start justify-center flex-grow place-self-start sm:place-self-center sm:justify-start">
           <div
             ref={timerRef}
             className={

@@ -96,7 +96,10 @@ export default function GameEnd({
                 </div>
                 <div className="font-bold">{pollSummary[0][0]}</div>
                 <div className="font-mono leading-tight text-fuchsia-600">
-                  {Math.round(pollSummary[0][1] * 10) / 10} Punkte
+                  {Math.round(pollSummary[0][1] * 10) / 10}{" "}
+                  {Math.round(pollSummary[0][1] * 10) / 10 === 1
+                    ? "Punkt"
+                    : "Punkte"}
                 </div>
               </div>
             </div>
@@ -123,7 +126,8 @@ export default function GameEnd({
                     </div>
                   </div>
                   <div className="ml-1 font-mono font-semibold leading-tight tracking-tight text-fuchsia-600">
-                    {Math.round(point[1] * 10) / 10} Punkte
+                    {Math.round(point[1] * 10) / 10}{" "}
+                    {Math.round(point[1] * 10) / 10 === 1 ? "Punkt" : "Punkte"}
                   </div>
                 </div>
               );

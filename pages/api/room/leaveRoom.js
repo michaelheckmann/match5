@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   try {
     await channels.trigger(
       `presence-${req.body.roomName}`,
-      "playerJoined",
+      "playerLeft",
       req.body.userName,
       () => {
         res.status(200).end("sent event successfully");
@@ -36,17 +36,22 @@ export default async function handler(req, res) {
         ref: q.Ref(q.Collection("rooms"), req.body.roomRefId),
         doc: q.Get(q.Var("ref")),
         array: q.Select(["data", "players"], q.Var("doc")),
+        filteredArray: q.Filter(q.Var("array"), (p) =>
+          q.Not(q.Equals(p, req.body.userName))
+        ),
       },
       q.Update(q.Var("ref"), {
-        data: { players: q.Append([req.body.userName], q.Var("array")) },
+        data: { players: q.Var("filteredArray") },
       })
     )
   );
 
   try {
     const response = await faunaQuery;
+    console.log("SUCCESSFULLY REMOVED");
     return res.status(200).json(response);
   } catch (error) {
+    console.error(error);
     return res.status(500).send(error);
   }
 }

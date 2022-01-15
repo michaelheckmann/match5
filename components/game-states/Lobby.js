@@ -1,6 +1,6 @@
-import React from "react";
-import makeRequest from "../../utilities/makeRequest";
 import { motion } from "framer-motion";
+
+import makeRequest from "../../utilities/makeRequest";
 
 export default function Lobby({ players, userName, roomName, roomRefId }) {
   async function startGame() {
@@ -13,7 +13,7 @@ export default function Lobby({ players, userName, roomName, roomRefId }) {
   }
 
   return (
-    <div className="flex items-center justify-center flex-auto w-full h-full">
+    <div className="flex flex-col items-center justify-center flex-auto w-full h-full">
       <motion.button
         whileHover={{
           scale: 1.05,
@@ -27,6 +27,13 @@ export default function Lobby({ players, userName, roomName, roomRefId }) {
       >
         Spiel starten
       </motion.button>
+
+      {players.length < 2 && (
+        <div className="max-w-[380px] italic text-center mt-5 sm:text-sm text-xs text-slate-400">
+          Es müssen mindestens zwei Spieler in diesem Raum sein, um das Spiel
+          zustarten
+        </div>
+      )}
     </div>
   );
 }
