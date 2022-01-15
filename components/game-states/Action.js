@@ -11,7 +11,7 @@ import {
   colorNumberMap,
   catColorMap,
 } from "../../utilities/constants";
-import makeRequest from "../../utilities/makeRequest";
+import makeRequest from "../../utilities/request";
 
 export default function Action({
   players,
@@ -122,7 +122,7 @@ export default function Action({
       !nineLeftTriggered.current
     ) {
       nineLeftTriggered.current = true;
-      await makeRequest("triggerInputNot", {
+      await makeRequest("notification/triggerInputNot", {
         roomName: roomName,
         message: "nineLeft",
         userName: userName,
@@ -133,7 +133,7 @@ export default function Action({
       !oneLeftTriggered.current
     ) {
       oneLeftTriggered.current = true;
-      await makeRequest("triggerInputNot", {
+      await makeRequest("notification/triggerInputNot", {
         roomName: roomName,
         message: "oneLeft",
         userName: userName,

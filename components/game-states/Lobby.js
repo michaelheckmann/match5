@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-import makeRequest from "../../utilities/makeRequest";
+import makeRequest from "../../utilities/request";
 
 export default function Lobby({ players, userName, roomName, roomRefId }) {
   async function startGame() {

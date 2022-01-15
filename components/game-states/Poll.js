@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
+import Image from "next/image";
+
+import { motion } from "framer-motion";
+
+import Loading from "../Loading";
+
 import {
   categoryIcons,
   combinations,
   colorNumberMap,
 } from "../../utilities/constants";
-import Loading from "../Loading";
-import getEmoji from "../../utilities/getEmoji";
-import Image from "next/image";
-import makeRequest from "../../utilities/makeRequest";
-import { motion } from "framer-motion";
+import getEmoji from "../../utilities/emoji";
+import makeRequest from "../../utilities/request";
 
 const catColorMap = {
   0: "bg-red-200 text-red-500 shadow-red-200 border-red-500",
@@ -157,7 +161,7 @@ export default function Poll({
     });
 
     if (parseInt(e.target.value) === 4) {
-      await makeRequest("triggerSelectNot", {
+      await makeRequest("notification/triggerSelectNot", {
         roomName: roomName,
         userName: userName,
         message: "maxPointsAwarded",

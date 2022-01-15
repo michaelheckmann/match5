@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Head from "next/head";
 import Router from "next/router";
@@ -13,10 +13,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { showToast, CloseButton } from "../utilities/toast";
 
 import Loading from "../components/Loading";
-import Pusher from "pusher-js";
 
 import { animalNames } from "../utilities/constants";
-import makeRequest from "../utilities/makeRequest";
+import makeRequest from "../utilities/request";
 
 // Anchor the modal, element set in _app.js
 Modal.setAppElement("#modal-root");

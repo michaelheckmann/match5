@@ -16,7 +16,7 @@ const channels = new Channels({
 
 export default async function handler(req, res) {
   try {
-    await channels.trigger(req.body.roomName, "categoriesSet", {
+    await channels.trigger(`presence-${req.body.roomName}`, "categoriesSet", {
       round: req.body.round,
       categories: req.body.categories,
       userName: req.body.userName,

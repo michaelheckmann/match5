@@ -9,7 +9,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast, CloseButton } from "../utilities/toast";
 
-import makeRequest from "../utilities/makeRequest";
+import makeRequest from "../utilities/request";
 
 const Login = () => {
   const [password, setPassword] = useState("");
@@ -18,7 +18,7 @@ const Login = () => {
   // Handle passwort submit event
   async function handleSubmit(e) {
     e.preventDefault();
-    const json = await makeRequest("auth", { password: password }, true);
+    const json = await makeRequest("auth/auth", { password: password }, true);
     if (json.authenticated) {
       const cookies = new Cookies();
       cookies.set("password", password, {

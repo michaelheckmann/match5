@@ -10,7 +10,7 @@ import {
   categoryIcons,
   catColorMap,
 } from "../../utilities/constants";
-import makeRequest from "../../utilities/makeRequest";
+import makeRequest from "../../utilities/request";
 
 export default function Dice({
   players,

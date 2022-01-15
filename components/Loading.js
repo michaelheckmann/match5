@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function Loading({ isLoading }) {
   if (!isLoading) return null;
 

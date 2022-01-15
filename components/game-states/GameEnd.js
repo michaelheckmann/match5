@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../Loading";
-import getEmoji from "../../utilities/getEmoji";
+import getEmoji from "../../utilities/emoji";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import makeRequest from "../../utilities/makeRequest";
+import makeRequest from "../../utilities/request";
 import Confetti from "react-dom-confetti";
 import { motion } from "framer-motion";
 
