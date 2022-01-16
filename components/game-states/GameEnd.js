@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
-import Loading from "../Loading";
-import getEmoji from "../../utilities/emoji";
-import Image from "next/image";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/router";
-import makeRequest from "../../utilities/request";
-import Confetti from "react-dom-confetti";
+import Image from "next/image";
+
 import { motion } from "framer-motion";
+import Confetti from "react-dom-confetti";
+
+import Loading from "../Loading";
+
+import getEmoji from "../../utilities/emoji";
+import makeRequest from "../../utilities/request";
 
 const config = {
   angle: 90,
@@ -27,6 +31,7 @@ export default function GameEnd({
   roomName,
   roomRefId,
   isHost,
+  t,
 }) {
   const [pollSummary, setPollSummary] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,6 +71,11 @@ export default function GameEnd({
     }, 10000);
   }
 
+  function returnToLobby() {
+    setIsLoading(true);
+    Router.push("/").then(() => setIsLoading(false));
+  }
+
   return (
     <div className="flex flex-col items-center justify-start sm:pb-[100px] flex-auto w-full h-full sm:justify-center">
       <Loading isLoading={isLoading} />
@@ -74,7 +84,7 @@ export default function GameEnd({
           <div className="flex flex-col items-center justify-center w-full">
             <Confetti active={triggerConfetti} config={config} />
             <div className="mb-2 font-extrabold tracking-wider uppercase text-fuchsia-600">
-              Sieger:in
+              {t`c-game-end.winner`}
             </div>
             <div className="flex items-center justify-center p-1 rounded-lg shadow-md from-fuchsia-400 bg-gradient-to-r to-pink-600 shadow-fuchsia-600/10">
               <div className="relative flex flex-col items-center justify-center p-5 bg-white rounded-lg">
@@ -98,8 +108,8 @@ export default function GameEnd({
                 <div className="font-mono leading-tight text-fuchsia-600">
                   {Math.round(pollSummary[0][1] * 10) / 10}{" "}
                   {Math.round(pollSummary[0][1] * 10) / 10 === 1
-                    ? "Punkt"
-                    : "Punkte"}
+                    ? t`c-game-end.point`
+                    : t`c-game-end.points`}
                 </div>
               </div>
             </div>
@@ -127,7 +137,9 @@ export default function GameEnd({
                   </div>
                   <div className="ml-1 font-mono font-semibold leading-tight tracking-tight text-fuchsia-600">
                     {Math.round(point[1] * 10) / 10}{" "}
-                    {Math.round(point[1] * 10) / 10 === 1 ? "Punkt" : "Punkte"}
+                    {Math.round(point[1] * 10) / 10 === 1
+                      ? t`c-game-end.point`
+                      : t`c-game-end.points`}
                   </div>
                 </div>
               );
@@ -143,9 +155,9 @@ export default function GameEnd({
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", bounce: 0.25 }}
                 className="px-5 py-2 mt-8 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={() => Router.push("/")}
+                onClick={returnToLobby}
               >
-                Zurück zur Lobby
+                {t`c-game-end.back-to-lobby`}
               </motion.button>
             </div>
           </div>

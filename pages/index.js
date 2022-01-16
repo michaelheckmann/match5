@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import Head from "next/head";
 import Router from "next/router";
+import useTranslation from "next-translate/useTranslation";
 
 import Cookies from "universal-cookie";
 
@@ -16,13 +17,17 @@ import Loading from "../components/Loading";
 
 import { animalNames } from "../utilities/constants";
 import makeRequest from "../utilities/request";
+import LanguageSelector from "../components/LanguageSelector";
 
 // Anchor the modal, element set in _app.js
 Modal.setAppElement("#modal-root");
 
 export default function Home() {
+  const { t } = useTranslation("home");
+
   const [playerName, setPlayerName] = useState("");
   const [joinRoomName, setJoinRoomName] = useState("");
+  const [categorySet, setCategorySet] = useState(0);
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
   const [joinModalIsOpen, setJoinModalIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +35,7 @@ export default function Home() {
   function handleChange(e) {
     if (e.target.name === "playerName") setPlayerName(e.target.value);
     if (e.target.name === "joinRoomName") setJoinRoomName(e.target.value);
+    if (e.target.name === "categorySet") setCategorySet(e.target.value);
   }
 
   async function createRoom(e) {
@@ -39,10 +45,7 @@ export default function Home() {
     // No player name
     if (!playerName) {
       setIsLoading(false);
-      return showToast(
-        "Gebe einen Spielernamen ein, um den Raum zu erstellen",
-        "error"
-      );
+      return showToast(t`common:not.error.missing-player-name`, "error");
     }
 
     let roomName;
@@ -84,10 +87,7 @@ export default function Home() {
     // No room available
     if (c === maxTries) {
       setIsLoading(false);
-      return showToast(
-        "Kein Raum verfügbar. Probiere es später erneut",
-        "error"
-      );
+      return showToast(t`common:not.error.no-room-available`, "error");
     }
 
     // Create room
@@ -95,6 +95,7 @@ export default function Home() {
       roomName: roomName,
       playerName: playerName,
       host: playerName,
+      categorySet: categorySet,
     });
 
     // Save player name to cookies
@@ -116,18 +117,12 @@ export default function Home() {
     // No player name
     if (!playerName) {
       setIsLoading(false);
-      return showToast(
-        "Gebe einen Spielernamen ein, um dem Raum beizutreten",
-        "error"
-      );
+      return showToast(t`common:not.error.missing-player-name`, "error");
     }
     // No room name
     if (!joinRoomName) {
       setIsLoading(false);
-      return showToast(
-        "Gebe den Namen des Raum ein, dem du beitreten möchtest",
-        "error"
-      );
+      return showToast(t`common:not.error.missing-room-name`, "error");
     }
     const json = await makeRequest(
       "room/getRoom",
@@ -140,16 +135,13 @@ export default function Home() {
     // No room found
     if (json.data.length === 0) {
       setIsLoading(false);
-      return showToast("Kein Raum mit diesem Namen gefunden", "error");
+      return showToast(t`common:not.error.room-not-found`, "error");
     }
 
     // Player name is already in
     if (json.data[0].data.players.some((p) => p === playerName)) {
       setIsLoading(false);
-      return showToast(
-        "Es existiert schon ein Spieler mit dem Namen in diesem Raum. Wähle einen anderen Namen",
-        "error"
-      );
+      return showToast(t`common:not.error.player-already-in`, "error");
     }
 
     // Save player name to cookies
@@ -167,8 +159,8 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>Match5: Lobby</title>
-        <meta name="description" content="Spiellobby" />
+        <title>{t`title`}</title>
+        <meta name="description" content={t`description`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -176,7 +168,7 @@ export default function Home() {
         <div className="relative flex items-center justify-center w-screen overflow-x-hidden text-gray-700 bg-gray-100 h-screen-custom">
           <div className="w-full">
             <h1 className="absolute top-28 sm:top-32 left-1/2 -ml-[200px] w-[400px] font-bold text-2xl sm:text-3xl text-center text-fuchsia-600 z-10">
-              Match 5: Lobby
+              {t`title`}
             </h1>
             <motion.div
               animate={{ rotate: 360, opacity: [0.5, 1, 0.5] }}
@@ -211,14 +203,20 @@ export default function Home() {
                   onClick={() => setCreateModalIsOpen(true)}
                   className="z-10 px-8 py-5 font-bold transition bg-white rounded-lg shadow sm:p-4 sm:hover:scale-105 sm:hover:-rotate-3 sm:hover:text-fuchsia-500"
                 >
-                  Raum erstellen
+                  {t`create-room`}
                 </button>
                 <button
                   onClick={() => setJoinModalIsOpen(true)}
                   className="z-10 px-8 py-5 font-bold transition bg-white rounded-lg shadow sm:p-4 sm:hover:scale-105 sm:hover:rotate-3 sm:hover:text-fuchsia-500"
                 >
-                  Raum beitreten
+                  {t`join-room`}
                 </button>
+              </div>
+            )}
+
+            {!isLoading && (
+              <div className="absolute flex items-center justify-center w-full bottom-5">
+                <LanguageSelector />
               </div>
             )}
           </div>
@@ -232,7 +230,7 @@ export default function Home() {
             overlayClassName="bg-gray-500/10 fixed inset-0 z-40"
           >
             <div className="flex items-start justify-between w-full ">
-              <div className="block mb-4 text-lg font-bold">Raum erstellen</div>
+              <div className="block mb-4 text-lg font-bold">{t`create-room`}</div>
               <button
                 onClick={() => {
                   setCreateModalIsOpen(false);
@@ -252,7 +250,7 @@ export default function Home() {
               <>
                 {" "}
                 <form onSubmit={createRoom}>
-                  <p className="mb-3">Wie ist dein Name?</p>
+                  <p className="mb-3">{t`name-question`}</p>
                   <input
                     type="text"
                     value={playerName}
@@ -262,11 +260,20 @@ export default function Home() {
                     className="block w-full h-10 pr-12 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
                     name="playerName"
                   />
+                  <p className="mt-4 mb-3">{t`set-question`}</p>
+                  <select
+                    name="categorySet"
+                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md select-triangle active:ring-transparent active:ring-1 active:ring-offset-4 active:ring-offset-fuchsia-400 active:outline-none sm:text-sm disabled:cursor-not-allowed"
+                    onChange={handleChange}
+                  >
+                    <option value="0">{t`set-option-standard`}</option>
+                    <option value="1">{t`set-option-english`}</option>
+                  </select>
                   <button
                     type="submit"
                     className="float-right px-5 py-2 mt-6 font-bold text-white transition rounded bg-fuchsia-400 hover:bg-fuchsia-600 sm:hover:scale-105 sm:hover:rotate-3"
                   >
-                    Erstellen
+                    {t`create`}
                   </button>
                 </form>
               </>
@@ -282,7 +289,7 @@ export default function Home() {
             overlayClassName="bg-gray-500/10 fixed inset-0 z-40"
           >
             <div className="flex items-start justify-between w-full ">
-              <div className="block mb-4 text-lg font-bold">Raum beitreten</div>
+              <div className="block mb-4 text-lg font-bold">{t`join-room`}</div>
               <button
                 onClick={() => {
                   setJoinModalIsOpen(false);
@@ -302,7 +309,7 @@ export default function Home() {
               <>
                 {" "}
                 <form onSubmit={joinRoom}>
-                  <p className="mb-3">Wie ist dein Name?</p>
+                  <p className="mb-3">{t`name-question`}</p>
                   <input
                     type="text"
                     value={playerName}
@@ -312,7 +319,7 @@ export default function Home() {
                     autoComplete="off"
                     className="block w-full h-10 pr-12 mb-8 border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm"
                   />
-                  <p className="mb-3">Wie ist der Raum Name?</p>
+                  <p className="mb-3">{t`room-question`}</p>
                   <input
                     type="text"
                     value={joinRoomName}
@@ -325,7 +332,7 @@ export default function Home() {
                     type="submit"
                     className="float-right px-5 py-2 mt-6 font-bold text-white transition rounded bg-fuchsia-400 hover:bg-fuchsia-600 sm:hover:scale-105 sm:hover:rotate-3"
                   >
-                    Beitreten
+                    {t`join`}
                   </button>
                 </form>
               </>

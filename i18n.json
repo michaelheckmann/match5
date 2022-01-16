@@ -1,0 +1,10 @@
+{
+  "locales": ["de", "en"],
+  "defaultLocale": "de",
+  "pages": {
+    "*": ["common"],
+    "/": ["home"],
+    "/login": ["login"],
+    "/room/[roomId]": ["room"]
+  }
+}

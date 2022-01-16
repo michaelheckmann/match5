@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import Loading from "../Loading";
 
 import {
-  roundOneCategories,
-  roundTwoCategories,
+  roundOneCategorySets,
+  roundTwoCategorySets,
   categoryIcons,
   catColorMap,
 } from "../../utilities/constants";
@@ -20,6 +20,8 @@ export default function Dice({
   round,
   categoriesProp,
   isHost,
+  categorySet,
+  t,
 }) {
   const [intervalCounter, setIntervalCounter] = useState([0, 0, 0, 0, 0]);
   const [incrementCounter, setIncrementCounter] = useState(0);
@@ -56,9 +58,9 @@ export default function Dice({
     if (!makeAPIRequest) return;
     const newCategories = intervalCounter.map((c, i) => {
       if (round === "roundOne") {
-        return roundOneCategories[i][c];
+        return roundOneCategorySets[categorySet][i][c];
       } else if (round === "roundTwo") {
-        return roundTwoCategories[i][c];
+        return roundTwoCategorySets[categorySet][i][c];
       }
     });
 
@@ -104,7 +106,7 @@ export default function Dice({
         <div className="flex flex-wrap justify-center w-full sm:mt-20 gap-14">
           {/* Round One Dice Roll */}
           {round === "roundOne" &&
-            roundOneCategories.map((category, i) => {
+            roundOneCategorySets[categorySet].map((category, i) => {
               return (
                 <div
                   className="flex flex-col items-center justify-center"
@@ -158,7 +160,7 @@ export default function Dice({
 
           {/* Round Two Dice Roll */}
           {round === "roundTwo" &&
-            roundTwoCategories.map((category, i) => {
+            roundTwoCategorySets[categorySet].map((category, i) => {
               return (
                 <div
                   className="flex flex-col items-center justify-center"
@@ -224,7 +226,7 @@ export default function Dice({
           disabled={!isHost}
           className="px-5 py-2 mt-20 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Anhalten
+          {t`c-dice.stop-dice`}
         </motion.button>
       )}
       {!isLoading && showLabel && (
@@ -234,20 +236,20 @@ export default function Dice({
             disabled={!isHost}
             className="px-6 py-3 font-bold transition border rounded sm:px-5 sm:py-2 text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:-rotate-3"
           >
-            Nochmal würfeln
+            {t`c-dice.reroll-dice`}
           </button>
           <button
             onClick={startRound}
             disabled={!isHost}
             className="order-first px-6 py-3 font-bold text-white transition rounded sm:px-5 sm:py-2 bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed sm:order-none disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:rotate-3"
           >
-            Runde starten
+            {t`c-dice.start-round`}
           </button>
         </div>
       )}
       {!isLoading && !isHost && (
         <div className="max-w-[380px] italic text-center mt-5 sm:text-sm text-xs text-slate-400">
-          Der Spielleiter wählt zufällig die Kategorien aus
+          {t`c-dice.host-info`}
         </div>
       )}
       {/* V SPACER */}

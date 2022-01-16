@@ -1,0 +1,13 @@
+{
+  "title": "Match 5: Lobby",
+  "description": "Spiellobby",
+  "create-room": "Raum erstellen",
+  "join-room": "Raum beitreten",
+  "name-question": "Wie ist dein Name?",
+  "set-question": "Welches Set möchtest du spielen?",
+  "set-option-standard": "Standard",
+  "set-option-english": "Englisch",
+  "create": "Erstellen",
+  "room-question": "Wie ist der Raum Name?",
+  "join": "Beitreten"
+}

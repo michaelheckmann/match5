@@ -32,6 +32,7 @@ export default function Poll({
   channel,
   isHost,
   pollPage,
+  t,
 }) {
   const [inputSets, setInputSets] = useState([]);
   const [polls, setPolls] = useState({});
@@ -39,6 +40,7 @@ export default function Poll({
   const [roundTwoPollSummarys, setRoundTwoPollSummarys] = useState([]);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [pollSubmitted, setPollSubmitted] = useState(false);
 
   //   Get the inputs from the players
   useEffect(() => fetchData(), []);
@@ -97,14 +99,12 @@ export default function Poll({
     setIsLoading(false);
   }
 
-  useEffect(() => handlePageChange(), [pollPage]);
+  useEffect(() => {
+    setPollSubmitted(false);
+    handlePageChange();
+  }, [pollPage]);
 
   async function handlePageChange() {
-    await makeRequest("game/submitPoll", {
-      userName: userName,
-      polls: polls,
-    });
-
     if (pollPage !== 10) return;
 
     const json = await makeRequest(
@@ -133,21 +133,14 @@ export default function Poll({
     setShowResultScreen(true);
   }
 
-  async function changePageNumber(nextPageNumber) {
+  async function submitPoll() {
     setIsLoading(true);
-
-    // await makeRequest("game/submitPoll", {
-    //   userName: userName,
-    //   polls: polls,
-    // });
-
-    await makeRequest("game/setPageNumber", {
-      pollPage: nextPageNumber,
-      userName: userName,
+    setPollSubmitted(true);
+    await makeRequest("game/submitPoll", {
       roomName: roomName,
-      roomRefId: roomRefId,
+      userName: userName,
+      polls: polls,
     });
-
     setIsLoading(false);
   }
 
@@ -171,9 +164,14 @@ export default function Poll({
   }
 
   async function newRound() {
-    await changePageNumber(0);
-
     setIsLoading(true);
+    await makeRequest("game/setPageNumber", {
+      pollPage: 0,
+      userName: userName,
+      roomName: roomName,
+      roomRefId: roomRefId,
+    });
+
     await makeRequest("game/setGameState", {
       roomName: roomName,
       state: round === "roundOne" ? "roundTwoStart" : "gameEnd",
@@ -202,32 +200,43 @@ export default function Poll({
                   key={inputSet}
                   className="flex justify-start flex-col sm:justify-center items-center sm:p-4 sm:min-h-[400px] w-full sm:max-w-[700px] text-gray-700 sm:bg-slate-100 sm:border border-slate-300 sm:rounded-lg sm:shadow-lg divide-y divide-slate-400 divide-dashed sm:divide-y-0"
                 >
-                  <div className="flex items-center justify-center w-full gap-5 mt-2 mb-10">
-                    <div
-                      className={
-                        catColorMap[colorNumberMap[combinations[i][0]]] +
-                        " rounded shadow-sm border text-center px-2 flex gap-1 items-center"
-                      }
-                    >
-                      {
-                        categoryIcons[
-                          categories[colorNumberMap[combinations[i][0]]]
-                        ]
-                      }{" "}
-                      {categories[colorNumberMap[combinations[i][0]]]}
+                  <div className="grid w-full grid-cols-4">
+                    <div className=""></div>
+                    {/* Categories */}
+                    <div className="flex items-center justify-center w-full col-span-2 gap-5 mt-2 mb-10">
+                      <div
+                        className={
+                          catColorMap[colorNumberMap[combinations[i][0]]] +
+                          " rounded shadow-sm border text-center px-2 flex gap-1 items-center"
+                        }
+                      >
+                        {
+                          categoryIcons[
+                            categories[colorNumberMap[combinations[i][0]]]
+                          ]
+                        }{" "}
+                        {categories[colorNumberMap[combinations[i][0]]]}
+                      </div>
+                      <div
+                        className={
+                          catColorMap[colorNumberMap[combinations[i][1]]] +
+                          " rounded shadow-sm border text-center px-2 flex gap-1 items-center"
+                        }
+                      >
+                        {
+                          categoryIcons[
+                            categories[colorNumberMap[combinations[i][1]]]
+                          ]
+                        }{" "}
+                        {categories[colorNumberMap[combinations[i][1]]]}
+                      </div>
                     </div>
-                    <div
-                      className={
-                        catColorMap[colorNumberMap[combinations[i][1]]] +
-                        " rounded shadow-sm border text-center px-2 flex gap-1 items-center"
-                      }
-                    >
-                      {
-                        categoryIcons[
-                          categories[colorNumberMap[combinations[i][1]]]
-                        ]
-                      }{" "}
-                      {categories[colorNumberMap[combinations[i][1]]]}
+
+                    {/* Combination */}
+                    <div className="[place-self:start_end] font-mono text-xs mt-2 text-right font-medium tracking-tight">
+                      <span className="font-medium">{t`c-poll.combinations`}</span>
+                      <br />
+                      {`${i + 1}/10`}
                     </div>
                   </div>
                   {Object.keys(inputSet).map((player) => {
@@ -253,7 +262,7 @@ export default function Poll({
                           {inputSet[player]}{" "}
                           {!inputSet[player] && (
                             <span className="text-sm italic tracking-wider text-gray-400">
-                              Nicht ausgefüllt
+                              {t`c-poll.nothing-submitted`}
                             </span>
                           )}
                         </div>
@@ -265,12 +274,12 @@ export default function Poll({
                               onChange={(e) => handleSelectChange(e, player, i)}
                               disabled={!polls[player].points[i]}
                             >
-                              <option value="4">Höchst kreativ</option>
-                              <option value="3">Echt gut</option>
-                              <option value="2">Nicht schlecht</option>
-                              <option value="1">So la la</option>
+                              <option value="4">{t`c-poll.rating-four`}</option>
+                              <option value="3">{t`c-poll.rating-three`}</option>
+                              <option value="2">{t`c-poll.rating-two`}</option>
+                              <option value="1">{t`c-poll.rating-one`}</option>
                               <option value="0" disabled={true}>
-                                Nicht ausgefüllt
+                                {t`c-poll.rating-zero`}
                               </option>
                             </select>
                           </div>
@@ -282,7 +291,7 @@ export default function Poll({
                               disabled={true}
                               value="-1"
                             >
-                              <option value="0">Nicht ausgefüllt</option>
+                              <option value="0">{t`c-poll.rating-zero`}</option>
                               <option value="-1"></option>
                             </select>
                           </div>
@@ -292,21 +301,22 @@ export default function Poll({
                   })}
 
                   <div className="flex items-end justify-end w-full h-full gap-5 mt-auto">
-                    {pollPage !== 0 && (
+                    {/* {pollPage !== 0 && (
                       <button
                         disabled={!isHost}
-                        onClick={() => changePageNumber(pollPage - 1)}
                         className="px-5 py-2 mt-20 font-bold transition border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 disabled:bg-slate-200 disabled:border-slate-400 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:-rotate-3"
                       >
                         Zurück
                       </button>
-                    )}
+                    )} */}
                     <button
-                      disabled={!isHost}
-                      onClick={() => changePageNumber(pollPage + 1)}
+                      disabled={pollSubmitted}
+                      onClick={submitPoll}
                       className="px-5 py-2 mt-6 font-bold text-white transition rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:rotate-0 sm:hover:scale-105 sm:hover:rotate-3"
                     >
-                      Weiter
+                      {pollSubmitted
+                        ? t`c-poll.waiting-players`
+                        : t`c-poll.poll-submitted`}
                     </button>
                   </div>
                 </div>
@@ -322,7 +332,7 @@ export default function Poll({
                   round === "roundOne" ? 2 : 3
                 } w-full px-2 pb-2 mb-5 border-b-2 border-slate-300`}
               >
-                <div className="font-bold">Spieler</div>
+                <div className="font-bold">{t`c-poll.player`}</div>
                 {["roundOne", "roundTwo"].includes(round) && (
                   <div
                     className={
@@ -332,12 +342,12 @@ export default function Poll({
                       "font-mono font-semibold place-self-end"
                     }
                   >
-                    Runde 1
+                    {t`c-poll.round`} 1
                   </div>
                 )}
                 {["roundTwo"].includes(round) && (
                   <div className="font-mono font-semibold place-self-end text-fuchsia-500">
-                    Runde 2
+                    {t`c-poll.round`} 2
                   </div>
                 )}
               </div>
@@ -368,8 +378,8 @@ export default function Poll({
                       <div className="font-mono font-semibold text-fuchsia-300 place-self-end">
                         {Math.round(pollSummary[1] * 10) / 10}{" "}
                         {Math.round(pollSummary[1] * 10) / 10 === 1
-                          ? "Punkt"
-                          : "Punkte"}
+                          ? t`c-poll.point`
+                          : t`c-poll.points`}
                       </div>
                     )}
 
@@ -388,8 +398,8 @@ export default function Poll({
                         ) /
                           10 ===
                         1
-                          ? "Punkt"
-                          : "Punkte"}
+                          ? t`c-poll.point`
+                          : t`c-poll.points`}
                       </div>
                     )}
                   </div>
@@ -409,7 +419,9 @@ export default function Poll({
                   className="px-5 py-2 mt-10 font-bold text-white rounded sm:mt-6 bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={newRound}
                 >
-                  {round !== "roundTwo" ? "Nächste Runde" : "Abschließen"}
+                  {round !== "roundTwo"
+                    ? t`c-poll.next-round`
+                    : t`c-poll.finish`}
                 </motion.button>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 import Image from "next/image";
 import Head from "next/head";
+import useTranslation from "next-translate/useTranslation";
 
 import Cookies from "universal-cookie";
 import Pusher from "pusher-js";
@@ -23,22 +24,22 @@ import { getRoom } from "../api/room/getRoom";
 import getEmoji from "../../utilities/emoji";
 import makeRequest from "../../utilities/request";
 
-const displayTitle = (gameState) => {
+const displayTitle = (gameState, t) => {
   let round = 0;
   if (gameState.includes("roundOne")) round = 1;
   else if (gameState.includes("roundTwo")) round = 2;
 
   let title = "";
-  if (gameState.includes("lobby")) title = "Lobby";
-  else if (gameState.includes("gameEnd")) title = "Spielzusammenfassung";
-  else if (gameState.includes("ActionStart")) title = "Finde passende Wörter";
-  else if (gameState.includes("PollStart")) title = "Bewerte die Antworten";
-  else if (gameState.includes("Start")) title = "Ziehe fünf Kategorien";
+  if (gameState.includes("lobby")) title = t`lobby`;
+  else if (gameState.includes("gameEnd")) title = t`game-summary`;
+  else if (gameState.includes("ActionStart")) title = t`find-words`;
+  else if (gameState.includes("PollStart")) title = t`rate-answers`;
+  else if (gameState.includes("Start")) title = t`draw-categories`;
 
   return [round, title];
 };
 
-const contextClass = {
+export const contextClass = {
   success: "text-green-400 bg-green-100 border-green-500",
   error: "text-red-400 bg-red-100 border-red-500",
   info: "text-gray-400 bg-gray-100 border-red-500",
@@ -57,7 +58,10 @@ export default function Room({
   roundOneCategoriesProp,
   roundTwoCategoriesProp,
   pollPageProp,
+  categorySetProp,
 }) {
+  const { t } = useTranslation("room");
+
   const [isLoading, setIsLoading] = useState(false);
   const [isHost, setIsHost] = useState(false);
 
@@ -70,6 +74,7 @@ export default function Room({
     roundTwoCategoriesProp
   );
   const [pollPage, setPollPage] = useState(pollPageProp);
+  const [pollSubmittedCtr, setPollSubmittedCtr] = useState(0);
 
   useEffect(() => {
     setIsLoading(true);
@@ -87,12 +92,16 @@ export default function Room({
       setPlayers((o) => (o.includes(newPlayer) ? o : [...o, newPlayer]));
 
       if (newPlayer === userNameProp) return;
-      showToast(`${newPlayer} ist dem Raum beigetreten`, "default", 5000);
+      showToast(t(`not.info.player-joined`, { p: newPlayer }), "default", 5000);
     });
 
     channel.bind("playerLeft", (removedPlayer) => {
       setPlayers((o) => o.filter((p) => p !== removedPlayer));
-      showToast(`${removedPlayer} hat den Raum verlassen`, "default", 5000);
+      showToast(
+        t(`not.info.player-left`, { p: removedPlayer }),
+        "default",
+        5000
+      );
     });
 
     channel.bind("gameStateChanged", (newGameStateData) => {
@@ -101,16 +110,12 @@ export default function Room({
         case "roundOneStart":
           if (newGameStateData.userName === userNameProp) return;
           return showToast(
-            `${newGameStateData.userName} hat das Spiel gestartet`,
+            t(`not.info.game-started`, { p: newGameStateData.userName }),
             "default",
             4000
           );
         case "roundTwoStart":
-          return showToast(
-            `Alle Anschnallen. Es geht in die zweite Runde`,
-            "default",
-            4000
-          );
+          return showToast(t`not.info.round-two-started`, "default", 4000);
         default:
           return;
       }
@@ -119,10 +124,14 @@ export default function Room({
     channel.bind("hostChanged", ({ host }) => {
       if (host === userNameProp) {
         setIsHost(true);
-        return showToast(`Du bist nun Spielleiter`, "default", 4000);
+        return showToast(t`not.info.player-is-host`, "default", 4000);
       } else {
         setIsHost(false);
-        return showToast(`${host} ist nun Spielleiter`, "default", 4000);
+        return showToast(
+          t(`not.info.host-changed`, { p: host }),
+          "default",
+          4000
+        );
       }
     });
 
@@ -134,7 +143,7 @@ export default function Room({
           if (categoriesSetData.categories.length === 0) return;
 
           return showToast(
-            `${categoriesSetData.userName} hat die Kategorien bestimmt`,
+            t(`not.info.host-changed`, { p: categoriesSetData.userName }),
             "default",
             3000
           );
@@ -144,7 +153,7 @@ export default function Room({
           if (categoriesSetData.categories.length === 0) return;
 
           return showToast(
-            `${categoriesSetData.userName} hat die Kategorien bestimmt`,
+            t(`not.info.host-changed`, { p: categoriesSetData.userName }),
             "default",
             3000
           );
@@ -159,13 +168,13 @@ export default function Room({
       switch (triggerInputData.message) {
         case "nineLeft":
           return showToast(
-            `${triggerInputData.userName} hat schon ein Wort gefunden`,
+            t(`not.info.nine-left`, { p: triggerInputData.userName }),
             "success",
             3000
           );
         case "oneLeft":
           return showToast(
-            `${triggerInputData.userName} fehlt nur noch ein Wort`,
+            t(`not.info.one-left`, { p: triggerInputData.userName }),
             "success",
             3000
           );
@@ -180,12 +189,20 @@ export default function Room({
       switch (triggerSelectData.message) {
         case "maxPointsAwarded":
           return showToast(
-            `${triggerSelectData.userName} findert dein Wort höchst kreativ`,
+            t(`not.info.max-points-awarded`, { p: triggerSelectData.userName }),
             "success",
             3000
           );
         default:
           return;
+      }
+    });
+
+    channel.bind("pollSubmitted", (userName) => {
+      console.log("pollSubmitted", userName, userNameProp);
+      setPollSubmittedCtr((c) => c + 1);
+      if (userName === userNameProp) {
+        showToast(t`not.info.poll-submitted`, "success", 3000);
       }
     });
 
@@ -196,7 +213,6 @@ export default function Room({
     channel.bind("pusher:member_removed", async (member) => {
       // isHost state not yet available
       if (userNameProp === hostNameProp) {
-        console.log(member.id, member.info.name);
         await makeRequest("room/leaveRoom", {
           roomRefId: roomRefIdProp,
           userName: member.info.name,
@@ -236,6 +252,28 @@ export default function Room({
     };
   }, []);
 
+  useEffect(() => {
+    console.log(
+      "pollSubmittedCtr " + (pollPage + 1),
+      pollSubmittedCtr + " / " + players.length
+    );
+    if (pollSubmittedCtr < players.length) return;
+    setPollSubmittedCtr(0);
+
+    if (isHost) changePageNumber();
+  }, [pollSubmittedCtr]);
+
+  async function changePageNumber() {
+    setIsLoading(true);
+    await makeRequest("game/setPageNumber", {
+      pollPage: pollPage + 1,
+      userName: userNameProp,
+      roomName: roomNameProp,
+      roomRefId: roomRefIdProp,
+    });
+    setIsLoading(false);
+  }
+
   async function changeHost() {
     if (isHost) return;
     await makeRequest("room/setHost", {
@@ -252,8 +290,11 @@ export default function Room({
       }
     >
       <Head>
-        <title>Match5: {roomNameProp}</title>
-        <meta name="description" content={"Spiel " + roomNameProp} />
+        <title>{t(`title`, { room: roomNameProp })}</title>
+        <meta
+          name="description"
+          content={t(`description`, { room: roomNameProp })}
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -261,10 +302,10 @@ export default function Room({
       <div className="grid w-full grid-cols-2 p-4 sm:grid-cols-3">
         <div className="flex flex-col text-sm sm:text-base">
           <div className="flex gap-1">
-            <span className="font-bold">Raum:</span> {roomNameProp}
+            <span className="font-bold">{t`room`}:</span> {roomNameProp}
           </div>
           <div className="flex items-center gap-1">
-            <span className="font-bold">Spielleiter:</span>
+            <span className="font-bold">{t`host`}:</span>
             {hostNameProp}{" "}
             <span
               className={
@@ -278,15 +319,15 @@ export default function Room({
               <CgArrowsExchangeAlt />
             </span>
           </div>
-          {displayTitle(gameState)[0] > 0 && (
+          {displayTitle(gameState, t)[0] > 0 && (
             <div className="flex gap-1">
-              <span className="font-bold">Runde:</span>
-              {displayTitle(gameState)[0]}
+              <span className="font-bold">{t`round`}:</span>
+              {displayTitle(gameState, t)[0]}
             </div>
           )}
         </div>
         <div className="order-last col-span-2 mt-4 text-lg font-bold text-center sm:text-xl place-self-center sm:order-none sm:col-span-1 sm:mt-0">
-          {displayTitle(gameState)[1]}
+          {displayTitle(gameState, t)[1]}
         </div>
         <div className="flex flex-wrap items-start justify-end max-w-md gap-1">
           {players.map((p) => (
@@ -320,6 +361,7 @@ export default function Room({
               roomName={roomNameProp}
               roomRefId={roomRefIdProp}
               isHost={isHost}
+              t={t}
             />
           )}
 
@@ -334,6 +376,8 @@ export default function Room({
               round="roundOne"
               categoriesProp={roundOneCategories}
               isHost={isHost}
+              categorySet={categorySetProp}
+              t={t}
             />
           )}
 
@@ -346,6 +390,7 @@ export default function Room({
               round="roundOne"
               categories={roundOneCategories}
               isHost={isHost}
+              t={t}
             />
           )}
 
@@ -359,6 +404,7 @@ export default function Room({
               categories={roundOneCategories}
               pollPage={pollPage}
               isHost={isHost}
+              t={t}
             />
           )}
 
@@ -373,6 +419,8 @@ export default function Room({
               round="roundTwo"
               categoriesProp={roundTwoCategories}
               isHost={isHost}
+              categorySet={categorySetProp}
+              t={t}
             />
           )}
 
@@ -385,6 +433,7 @@ export default function Room({
               round="roundTwo"
               categories={roundTwoCategories}
               isHost={isHost}
+              t={t}
             />
           )}
 
@@ -398,6 +447,7 @@ export default function Room({
               categories={roundTwoCategories}
               pollPage={pollPage}
               isHost={isHost}
+              t={t}
             />
           )}
 
@@ -408,6 +458,7 @@ export default function Room({
               roomName={roomNameProp}
               roomRefId={roomRefIdProp}
               isHost={isHost}
+              t={t}
             />
           )}
         </div>
@@ -468,6 +519,7 @@ export async function getServerSideProps(context) {
       roundOneCategoriesProp: room.roundOneCategories,
       roundTwoCategoriesProp: room.roundTwoCategories,
       pollPageProp: room.pollPage,
+      categorySetProp: room.categorySet,
     },
   };
 }

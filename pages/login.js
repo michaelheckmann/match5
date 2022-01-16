@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import Head from "next/head";
 import Router from "next/router";
+import useTranslation from "next-translate/useTranslation";
 
 import Cookies from "universal-cookie";
 
@@ -12,6 +13,8 @@ import { showToast, CloseButton } from "../utilities/toast";
 import makeRequest from "../utilities/request";
 
 const Login = () => {
+  const { t } = useTranslation("login");
+
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -26,15 +29,15 @@ const Login = () => {
       });
       Router.push("/");
     } else {
-      showToast("Ungültiges Passwort", "error");
+      showToast(t`common:not.error.wrong-password`, "error");
     }
   }
 
   return (
     <>
       <Head>
-        <title>Match5: Login</title>
-        <meta name="description" content="Login für Match5" />
+        <title>{t`title`}</title>
+        <meta name="description" content={t`description`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -43,7 +46,7 @@ const Login = () => {
           <div className="bg-white rounded-lg shadow-lg p-9">
             <form onSubmit={handleSubmit}>
               <label className="block">
-                <span className="block mb-4 text-lg font-bold">Passwort</span>
+                <span className="block mb-4 text-lg font-bold">{t`password`}</span>
                 <input
                   type="text"
                   className="block w-full h-10 pr-12 font-mono text-center border border-gray-300 rounded-md focus:ring-fuchsia-400 focus:border-fuchsia-300 focus:ring-2 focus:ring-offset-2 focus:outline-none pl-7 sm:text-sm sm:placeholder:text-base placeholder:text-sm"
@@ -60,7 +63,7 @@ const Login = () => {
                 type="submit"
                 className="float-right px-5 py-2 mt-6 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600"
               >
-                Einloggen
+                {t`login`}
               </button>
             </form>
           </div>

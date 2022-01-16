@@ -1,0 +1,17 @@
+{
+  "lang": {
+    "de": "Deutsch",
+    "en": "English"
+  },
+
+  "not": {
+    "error": {
+      "missing-player-name": "Gebe einen Spielernamen ein, um den Raum zu erstellen",
+      "no-room-available": "Kein Raum verfügbar. Probiere es später erneut",
+      "missing-room-name": "Gebe den Namen des Raum ein, dem du beitreten möchtest",
+      "room-not-found": "Kein Raum mit diesem Namen gefunden",
+      "player-already-in": "Es existiert schon ein Spieler mit dem Namen in diesem Raum. Wähle einen anderen Namen",
+      "wrong-password": "Ungültiges Passwort"
+    }
+  }
+}

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 import makeRequest from "../../utilities/request";
 
-export default function Lobby({ players, userName, roomName, roomRefId }) {
+export default function Lobby({ players, userName, roomName, roomRefId, t }) {
   async function startGame() {
     await makeRequest("game/setGameState", {
       roomName: roomName,
@@ -25,13 +25,12 @@ export default function Lobby({ players, userName, roomName, roomRefId }) {
         className="px-5 py-2 font-bold text-white rounded bg-fuchsia-400 hover:bg-fuchsia-600 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         onClick={startGame}
       >
-        Spiel starten
+        {t`c-lobby.start-game`}
       </motion.button>
 
       {players.length < 2 && (
         <div className="max-w-[380px] italic text-center mt-5 sm:text-sm text-xs text-slate-400">
-          Es müssen mindestens zwei Spieler in diesem Raum sein, um das Spiel
-          zustarten
+          {t`c-lobby.number-of-players`}
         </div>
       )}
     </div>

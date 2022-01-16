@@ -3,6 +3,11 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import debounce from "lodash.debounce";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast, CloseButton } from "../../utilities/toast";
+import { contextClass } from "../../pages/room/[roomId]";
+
 import Loading from "../Loading";
 
 import {
@@ -21,10 +26,13 @@ export default function Action({
   round,
   categories,
   isHost,
+  t,
 }) {
   const [intervalCounter, setIntervalCounter] = useState(
     process.env.NODE_ENV === "development" ? 30 : 300
   );
+  const halfwayPoint = process.env.NODE_ENV === "development" ? 15 : 150;
+
   const [inputs, setInputs] = useState(Array(10).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [timerIsVisible, setTimerIsVisible] = useState(false);
@@ -81,6 +89,10 @@ export default function Action({
   }, [timerRef]);
 
   useEffect(() => {
+    if (intervalCounter === halfwayPoint) {
+      showToast(t`c-action.not.halfway-point`, "default", 3000);
+    }
+
     // Countdown has finished
     if (intervalCounter === 0) {
       setIsLoading(true);
@@ -290,6 +302,24 @@ export default function Action({
           <div className="hidden text-slate-500 text-amber-500"></div>
         </motion.div>
       )}
+
+      <ToastContainer
+        toastClassName={({ type }) =>
+          contextClass[type || "default"] +
+          " relative flex justify-between p-1 rounded-lg overflow-hidden border shadow-lg mt-3 sm:mb-0 mb-4 sm:mx-0 mx-4"
+        }
+        bodyClassName={() => "flex text-sm font-semibold block p-3 w-full"}
+        position="bottom-center"
+        autoClose={10000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+        closeButton={CloseButton}
+      />
 
       {/* V SPACER */}
       {!isLoading && <div className="w-full h-20 md:hidden"></div>}

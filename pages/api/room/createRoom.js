@@ -10,6 +10,7 @@ export default async function handler(req, res) {
         roundOneCategories: [],
         roundTwoCategories: [],
         pollPage: 0,
+        categorySet: req.body.categorySet,
       },
     })
   );

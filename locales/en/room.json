@@ -1,0 +1,65 @@
+{
+  "title": "Match 5: {{room}}",
+  "description": "Spiel: {{room}}",
+  "not": {
+    "info": {
+      "player-joined": "{{p}} ist dem Raum beigetreten",
+      "player-left": "{{p}} hat den Raum verlassen",
+      "game-started": "{{p}} hat das Spiel gestartet",
+      "round-two-started": "Alle Anschnallen. Es geht in die zweite Runde",
+      "player-is-host": "Du bist nun Spielleiter",
+      "host-changed": "{{p}} ist nun Spielleiter",
+      "categories-set": "{{p}} hat die Kategorien bestimmt",
+      "nine-left": "{{p}} hat die Kategorien bestimmt",
+      "one-left": "{{p}} hat schon ein Wort gefunden",
+      "max-points-awarded": "{{p}} findert dein Wort höchst kreativ",
+      "poll-submitted": "Bewertung erfolgreich abgeschickt"
+    }
+  },
+  "room": "Raum",
+  "host": "Spielleiter",
+  "round": "Runde",
+  "lobby": "Lobby",
+  "game-summary": "Spielzusammenfassung",
+  "find-words": "Finde passende Wörter",
+  "rate-answers": "Bewerte die Antworten",
+  "draw-categories": "Ziehe fünf Kategorien",
+  "c-lobby": {
+    "start-game": "Spiel starten",
+    "number-of-players": "Es müssen mindestens zwei Spieler in diesem Raum sein, um das Spiel zu starten"
+  },
+  "c-dice": {
+    "stop-dice": "Anhalten",
+    "reroll-dice": "Nochmal würfeln",
+    "start-round": "Runde starten",
+    "host-info": "Der Spielleiter wählt zufällig die Kategorien aus"
+  },
+  "c-action": {
+    "not": {
+      "halfway-point": "Halbzeit!"
+    }
+  },
+  "c-poll": {
+    "combinations": "Kombinationen",
+    "nothing-submitted": "Nicht ausgefüllt",
+    "rating-four": "Höchst kreativ",
+    "rating-three": "Echt gut",
+    "rating-two": "Nicht schlecht",
+    "rating-one": "So la la",
+    "rating-zero": "Nicht ausgefüllt",
+    "waiting-players": "Warte auf Mitspieler",
+    "poll-submitted": "Bewertung abschicken",
+    "player": "Spieler",
+    "round": "Runde",
+    "point": "Punkt",
+    "points": "Punkte",
+    "next-round": "Nächste Runde",
+    "finish": "Abschließen"
+  },
+  "c-game-end": {
+    "winner": "Sieger:in",
+    "point": "Punkt",
+    "points": "Punkte",
+    "back-to-lobby": "Zurück zur Lobby"
+  }
+}
