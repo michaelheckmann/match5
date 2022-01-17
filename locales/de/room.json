@@ -10,8 +10,8 @@
       "player-is-host": "Du bist nun Spielleiter",
       "host-changed": "{{p}} ist nun Spielleiter",
       "categories-set": "{{p}} hat die Kategorien bestimmt",
-      "nine-left": "{{p}} hat die Kategorien bestimmt",
-      "one-left": "{{p}} hat schon ein Wort gefunden",
+      "nine-left": "{{p}} hat schon ein Wort gefunden",
+      "one-left": "{{p}} fehlt nur noch ein Wort",
       "max-points-awarded": "{{p}} findert dein Wort höchst kreativ",
       "poll-submitted": "Bewertung erfolgreich abgeschickt"
     }

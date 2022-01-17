@@ -1,65 +1,65 @@
 {
   "title": "Match 5: {{room}}",
-  "description": "Spiel: {{room}}",
+  "description": "Game: {{room}}",
   "not": {
     "info": {
-      "player-joined": "{{p}} ist dem Raum beigetreten",
-      "player-left": "{{p}} hat den Raum verlassen",
-      "game-started": "{{p}} hat das Spiel gestartet",
-      "round-two-started": "Alle Anschnallen. Es geht in die zweite Runde",
-      "player-is-host": "Du bist nun Spielleiter",
-      "host-changed": "{{p}} ist nun Spielleiter",
-      "categories-set": "{{p}} hat die Kategorien bestimmt",
-      "nine-left": "{{p}} hat die Kategorien bestimmt",
-      "one-left": "{{p}} hat schon ein Wort gefunden",
-      "max-points-awarded": "{{p}} findert dein Wort höchst kreativ",
-      "poll-submitted": "Bewertung erfolgreich abgeschickt"
+      "player-joined": "{{p}} joined the room",
+      "player-left": "{{p}} left the room",
+      "game-started": "{{p}} started the game",
+      "round-two-started": "Buckle up, everyone. It's time for the second round",
+      "player-is-host": "You are the host now",
+      "host-changed": "{{p}} is the host now",
+      "categories-set": "{{p}} has chosen the categories",
+      "nine-left": "{{p}} has already found a word",
+      "one-left": "{{p}} is missing only one word",
+      "max-points-awarded": "{{p}} thinks your word is highly creative",
+      "poll-submitted": "Rating successfully submitted"
     }
   },
-  "room": "Raum",
-  "host": "Spielleiter",
-  "round": "Runde",
+  "room": "Room",
+  "host": "Host",
+  "round": "Round",
   "lobby": "Lobby",
-  "game-summary": "Spielzusammenfassung",
-  "find-words": "Finde passende Wörter",
-  "rate-answers": "Bewerte die Antworten",
-  "draw-categories": "Ziehe fünf Kategorien",
+  "game-summary": "Game summary",
+  "find-words": "Find matching words",
+  "rate-answers": "Evaluate the answers",
+  "draw-categories": "Draw five categories",
   "c-lobby": {
-    "start-game": "Spiel starten",
-    "number-of-players": "Es müssen mindestens zwei Spieler in diesem Raum sein, um das Spiel zu starten"
+    "start-game": "Start the game",
+    "number-of-players": "There must be at least two players in the room to start the game"
   },
   "c-dice": {
-    "stop-dice": "Anhalten",
-    "reroll-dice": "Nochmal würfeln",
-    "start-round": "Runde starten",
-    "host-info": "Der Spielleiter wählt zufällig die Kategorien aus"
+    "stop-dice": "Stop",
+    "reroll-dice": "Re-roll",
+    "start-round": "Start round",
+    "host-info": "The host randomly selects the categories"
   },
   "c-action": {
     "not": {
-      "halfway-point": "Halbzeit!"
+      "halfway-point": "Half-time!"
     }
   },
   "c-poll": {
-    "combinations": "Kombinationen",
-    "nothing-submitted": "Nicht ausgefüllt",
-    "rating-four": "Höchst kreativ",
-    "rating-three": "Echt gut",
-    "rating-two": "Nicht schlecht",
-    "rating-one": "So la la",
-    "rating-zero": "Nicht ausgefüllt",
-    "waiting-players": "Warte auf Mitspieler",
-    "poll-submitted": "Bewertung abschicken",
-    "player": "Spieler",
-    "round": "Runde",
-    "point": "Punkt",
-    "points": "Punkte",
-    "next-round": "Nächste Runde",
-    "finish": "Abschließen"
+    "combinations": "Combinations",
+    "nothing-submitted": "Empty",
+    "rating-four": "Very creative",
+    "rating-three": "Really good",
+    "rating-two": "Not bad",
+    "rating-one": "So-so",
+    "rating-zero": "Empty",
+    "waiting-players": "Waiting for the others",
+    "poll-submitted": "Submit evaluation",
+    "player": "Player",
+    "round": "Round",
+    "point": "point",
+    "points": "points",
+    "next-round": "Next round",
+    "finish": "Finish"
   },
   "c-game-end": {
-    "winner": "Sieger:in",
-    "point": "Punkt",
-    "points": "Punkte",
-    "back-to-lobby": "Zurück zur Lobby"
+    "winner": "Winner",
+    "point": "point",
+    "points": "points",
+    "back-to-lobby": "Back to the Lobby"
   }
 }

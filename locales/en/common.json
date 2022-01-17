@@ -6,12 +6,12 @@
 
   "not": {
     "error": {
-      "missing-player-name": "Gebe einen Spielernamen ein, um den Raum zu erstellen",
-      "no-room-available": "Kein Raum verfügbar. Probiere es später erneut",
-      "missing-room-name": "Gebe den Namen des Raum ein, dem du beitreten möchtest",
-      "room-not-found": "Kein Raum mit diesem Namen gefunden",
-      "player-already-in": "Es existiert schon ein Spieler mit dem Namen in diesem Raum. Wähle einen anderen Namen",
-      "wrong-password": "Ungültiges Passwort"
+      "missing-player-name": "Enter a player name to create the room",
+      "no-room-available": "No room available. Try again later",
+      "missing-room-name": "Enter the name of the room you want to join",
+      "room-not-found": "No room found with this name",
+      "player-already-in": "There is already a player with the name in this room. Choose another name",
+      "wrong-password": "Invalid password"
     }
   }
 }
