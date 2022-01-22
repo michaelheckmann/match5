@@ -10,8 +10,11 @@ export default function LanguageSelector() {
   return (
     <div className="flex divide-x-2 divide-fuchsia-800">
       {locales.map((lng) => (
-        <div className="flex items-center justify-center px-4 py-1 transition cursor-pointer text-fuchsia-800 hover:font-bold ">
-          <Link href="/" locale={lng} key={lng}>
+        <div
+          className="flex items-center justify-center px-4 py-1 transition cursor-pointer text-fuchsia-800 hover:font-bold "
+          key={lng}
+        >
+          <Link href="/" locale={lng}>
             {t(`lang.${lng}`)}
           </Link>
         </div>

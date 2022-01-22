@@ -14,6 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { showToast, CloseButton } from "../utilities/toast";
 
 import Loading from "../components/Loading";
+import Reaction from "../components/Reaction";
 
 import { animalNames } from "../utilities/constants";
 import makeRequest from "../utilities/request";
@@ -211,6 +212,9 @@ export default function Home() {
                 >
                   {t`join-room`}
                 </button>
+                <div className="absolute top-0 left-0">
+                  <Reaction />
+                </div>
               </div>
             )}
 
