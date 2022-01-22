@@ -61,5 +61,11 @@
     "point": "Punkt",
     "points": "Punkte",
     "back-to-lobby": "Zurück zur Lobby"
+  },
+  "gif": {
+    "shuffle": "Weiter",
+    "send": "Senden",
+    "submit": "Suchen",
+    "placeholder": "Reaktion (z.B. cool)"
   }
 }

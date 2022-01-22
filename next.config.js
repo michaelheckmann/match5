@@ -10,4 +10,7 @@ module.exports = nextTranslate({
     defaultLocale: "de",
     localeDetection: false,
   },
+  images: {
+    domains: ["media.tenor.com"],
+  },
 });

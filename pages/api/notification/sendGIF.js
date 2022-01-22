@@ -1,0 +1,31 @@
+const Channels = require("pusher");
+
+const {
+  PUSHER_APP_ID: appId,
+  PUSHER_KEY: key,
+  PUSHER_SECRET: secret,
+  PUSHER_CLUSTER: cluster,
+} = process.env;
+
+const channels = new Channels({
+  appId,
+  key,
+  secret,
+  cluster,
+});
+
+export default async function handler(req, res) {
+  try {
+    const response = await channels.trigger(
+      `presence-${req.body.roomName}`,
+      "receiveGIF",
+      {
+        userName: req.body.userName,
+        gif: req.body.gif,
+      }
+    );
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+}

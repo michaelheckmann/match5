@@ -15,6 +15,7 @@ export default async function makeRequest(url, body, returnJSON = false) {
 
   try {
     const response = await res.json();
+    // console.log("response", response);
     return response;
   } catch (error) {
     return error;

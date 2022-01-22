@@ -61,5 +61,11 @@
     "point": "point",
     "points": "points",
     "back-to-lobby": "Back to the Lobby"
+  },
+  "gif": {
+    "shuffle": "Shuffle",
+    "send": "Send",
+    "submit": "Submit",
+    "placeholder": "Reaction (e.g. cool)"
   }
 }

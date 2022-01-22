@@ -1,24 +1,19 @@
 export default async function handler(req, res) {
-  const CONTENT_FILTER = "medium";
-  const MEDIA_FILTER = "minimal";
-  const LIMIT = 10;
-  const API_KEY = process.env.TENOR_API_KEY;
-  const query = req.body.query;
+  const params = new URLSearchParams({
+    key: process.env.TENOR_API_KEY,
+    q: req.body.query,
+    media_filter: "minimal",
+    contentfilter: "medium",
+    limit: 10,
+  });
 
   try {
-    const response = await fetch(`
+    const response = await fetch(`https://g.tenor.com/v1/search?${params}`);
+    const jsonReponse = await response.json();
 
-    https://g.tenor.com/v1/search
-     ?key=${API_KEY}
-     &q=${query}
-     &contentfilter=${CONTENT_FILTER}
-     &media_filter=${MEDIA_FILTER}
-     &limit=${LIMIT}
-
-    `);
-
-    return res.status(200).json(response);
+    return res.status(200).json(jsonReponse);
   } catch (error) {
+    console.error(error);
     return res.status(500).json(error);
   }
 }

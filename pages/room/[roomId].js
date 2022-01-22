@@ -19,6 +19,7 @@ import Action from "../../components/game-states/Action";
 import Poll from "../../components/game-states/Poll";
 import GameEnd from "../../components/game-states/GameEnd";
 import Loading from "../../components/Loading";
+import Reaction from "../../components/Reaction";
 
 import { getRoom } from "../api/room/getRoom";
 import getEmoji from "../../utilities/emoji";
@@ -43,9 +44,9 @@ export const contextClass = {
   success: "text-green-400 bg-green-100 border-green-500",
   error: "text-red-400 bg-red-100 border-red-500",
   info: "text-gray-400 bg-gray-100 border-red-500",
-  warning: "text-yellow-400 bg-yellow-100 border-yellow-500",
   default: "text-slate-500 bg-slate-100 border-slate-500",
-  dark: "text-gray-400 bg-gray-100 border-gray-500",
+  warning:
+    "text-gray-400 bg-transparent border-transparent p-0 shadow-none hover:opacity-70 transition",
 };
 
 export default function Room({
@@ -198,8 +199,36 @@ export default function Room({
       }
     });
 
+    channel.bind("receiveGIF", (gifData) => {
+      const Msg = () => (
+        <div className="flex flex-col">
+          <div className="flex items-center justify-center gap-1 mb-1 text-center">
+            {gifData.userName}{" "}
+            <div className="pt-[3px]">
+              <Image
+                src={getEmoji(gifData.userName, roomRefIdProp)}
+                width={18}
+                height={18}
+                alt=""
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-center p-3 bg-gray-200 rounded-lg">
+            <Image
+              src={gifData.gif.url}
+              alt={gifData.gif.description}
+              width={200}
+              height={150}
+              objectFit="contain"
+              className="rounded-lg"
+            />
+          </div>
+        </div>
+      );
+      showToast(Msg, "gif", 5000);
+    });
+
     channel.bind("pollSubmitted", (userName) => {
-      console.log("pollSubmitted", userName, userNameProp);
       setPollSubmittedCtr((c) => c + 1);
       if (userName === userNameProp) {
         showToast(t`not.info.poll-submitted`, "success", 3000);
@@ -253,10 +282,6 @@ export default function Room({
   }, []);
 
   useEffect(() => {
-    console.log(
-      "pollSubmittedCtr " + (pollPage + 1),
-      pollSubmittedCtr + " / " + players.length
-    );
     if (pollSubmittedCtr < players.length) return;
     setPollSubmittedCtr(0);
 
@@ -461,6 +486,15 @@ export default function Room({
               t={t}
             />
           )}
+
+          {!gameState.includes("Action") && (
+            <Reaction
+              userName={userNameProp}
+              roomName={roomNameProp}
+              roomRefId={roomRefIdProp}
+              t={t}
+            />
+          )}
         </div>
       )}
 
@@ -469,7 +503,11 @@ export default function Room({
           contextClass[type || "default"] +
           " relative flex justify-between p-1 rounded-lg overflow-hidden border shadow-lg mt-3 sm:mb-0 mb-4 sm:mx-0 mx-4"
         }
-        bodyClassName={() => "flex text-sm font-semibold block p-3 w-full"}
+        bodyClassName={({ type }) =>
+          type === "warning"
+            ? "p-0"
+            : "p-3" + " flex text-sm font-semibold block w-full"
+        }
         position="bottom-center"
         autoClose={10000}
         hideProgressBar
@@ -481,6 +519,8 @@ export default function Room({
         pauseOnHover={false}
         closeButton={CloseButton}
       />
+      {/* JIT */}
+      <div className="max-w-[200px] hidden shadow-none hover:opacity-70"></div>
     </div>
   );
 }

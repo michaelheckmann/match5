@@ -25,6 +25,21 @@ export const showToast = (s, type, duration = 7000) => {
       });
       break;
 
+    // Had to repurpose this class
+    case "gif":
+      toast.warning(s, {
+        position: "bottom-left",
+        autoClose: duration,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        progress: undefined,
+        icon: false,
+        closeButton: false,
+      });
+      break;
+
     default:
       toast(s, {
         position: "bottom-center",
