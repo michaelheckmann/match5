@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import Image from "next/image";
 
 import { motion } from "framer-motion";
 
 import makeRequest from "../utilities/request";
+import useClickOutside from "../utilities/useClickOutside";
 
 export default function Reaction({ userName, roomName, roomRefId, t }) {
+  const wrapperRef = useRef(null);
+  useClickOutside(wrapperRef, closeInput);
+
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [currentGif, setCurrentGif] = useState("");
@@ -28,15 +32,19 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
     setCurrenGifIndex(0);
   }
 
-  function handleKeyPress(e) {
-    console.log(e);
-    if (e.metaKey && e.key === "k") console.log("toggle");
-  }
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.metaKey && e.key === "k") isOpen ? closeInput() : setIsOpen(true);
+    },
+    [isOpen]
+  );
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyPress);
-    return window.removeEventListener("keydown", handleKeyPress);
-  }, []);
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
 
   useEffect(
     () => setCurrentGif(gifs[currenGifIndex % 10]),
@@ -65,6 +73,7 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
         (isOpen ? "w-screen pl-20" : "w-auto") +
         " absolute z-50 w-screen sm:w-auto bottom-10 right-10"
       }
+      ref={wrapperRef}
     >
       {!isOpen && (
         <div className="rounded-full shadow-lg">
