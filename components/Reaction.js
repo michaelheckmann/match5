@@ -85,7 +85,7 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
             transition={{ type: "spring" }}
             whileTap={{ scale: 0.9, rotate: 0 }}
             onClick={() => setIsOpen(true)}
-            className="p-4 border-4 border-white rounded-full outline-none cursor-pointer w-14 h-14 bg-fuchsia-500"
+            className="relative p-4 border-4 border-white rounded-full outline-none cursor-pointer w-14 h-14 bg-fuchsia-500"
           >
             <Image src="/emojis/1F61C.svg" alt="emoji" layout="fill" />
           </motion.div>
