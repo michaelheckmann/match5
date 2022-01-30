@@ -187,7 +187,7 @@ export default function Action({
               (intervalCounter === 60 || intervalCounter === 150
                 ? "border-red-400 text-red-600 bg-red-300 shadow-red-300"
                 : "") +
-              " px-3 py-2 font-mono transition text-xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-lg sticky top-4"
+              " px-3 py-2 font-mono transition text-xl font-bold text-gray-500 bg-gray-200 border border-gray-300 rounded-lg shadow-lg fixed top-4"
             }
           >
             {((intervalCounter / 60) | 0).toString().padStart(2, "0")}:
@@ -197,7 +197,7 @@ export default function Action({
       </AnimatePresence>
       <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-0 place-items-center">
         {/* Countdown Widget */}
-        <div className="flex items-start justify-center flex-grow place-self-start sm:place-self-center sm:justify-start">
+        <div className="flex justify-center flex-grow w-full place-self-start sm:place-self-center">
           <div
             ref={timerRef}
             className={

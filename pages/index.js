@@ -105,7 +105,7 @@ export default function Home() {
     });
 
     // Reroute to room
-    Router.push(`/room/${roomName.toLowerCase()}`).then(() => {
+    Router.push(`/room/${roomName.toLowerCase()}`).finally(() => {
       setIsLoading(false);
     });
   }
@@ -151,7 +151,7 @@ export default function Home() {
     });
 
     // Reroute to room
-    Router.push(`/room/${joinRoomName.toLowerCase()}`).then(() => {
+    Router.push(`/room/${joinRoomName.toLowerCase()}`).finally(() => {
       setIsLoading(false);
     });
   }

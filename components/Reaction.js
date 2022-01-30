@@ -13,16 +13,16 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [inputLang, setInputLang] = useState("en");
   const [currentGif, setCurrentGif] = useState("");
   const [gifs, setGifs] = useState([]);
   const [currenGifIndex, setCurrenGifIndex] = useState(0);
 
   async function submitForm(e) {
     e.preventDefault();
-
     const res = await makeRequest(
       "notification/fetchGIF",
-      { query: input },
+      { query: input, locale: inputLang },
       true
     );
     const gifs = res.results.map((g) => {
@@ -70,8 +70,8 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
   return (
     <div
       className={
-        (isOpen ? "w-screen pl-20" : "w-auto") +
-        " absolute z-50 w-screen sm:w-auto bottom-10 right-10"
+        (isOpen ? "w-screen pl-10" : "w-auto") +
+        " absolute z-50 w-screen sm:w-auto bottom-10 right-5"
       }
       ref={wrapperRef}
     >
@@ -96,7 +96,7 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
           <div className="relative p-4 bg-white rounded-lg shadow-lg">
             {currentGif && (
               <div className="flex gap-5 mb-4 sm:mb-2 sm:gap-3">
-                <div className="p-2 bg-gray-100 rounded-lg w-full sm:w-[170px] flex justify-center items-center min-">
+                <div className="p-2 bg-gray-100 rounded-lg w-full sm:w-[170px] flex justify-center items-center">
                   <Image
                     src={currentGif.url}
                     alt={currentGif.description}
@@ -105,16 +105,16 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
                     objectFit="contain"
                   />
                 </div>
-                <div className="flex flex-col items-end justify-end gap-4 ml-2 sm:gap-2">
+                <div className="flex flex-col items-end justify-end gap-4 ml-auto sm:gap-2">
                   <button
                     onClick={() => setCurrenGifIndex((i) => i + 1)}
-                    className="h-6 px-2 text-xs transition border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 sm:hover:scale-105 sm:hover:-rotate-2 sm:text-sm"
+                    className="h-6 px-2 transition border rounded text-fuchsia-400 border-fuchsia-400 hover:border-fuchsia-600 sm:hover:scale-105 sm:hover:-rotate-2"
                   >
                     {t`gif.shuffle`}
                   </button>
                   <button
                     onClick={sendGIF}
-                    className="h-6 px-2 text-xs font-semibold text-white transition rounded bg-fuchsia-400 hover:bg-fuchsia-600 sm:hover:scale-105 sm:hover:-rotate-2 sm:text-sm"
+                    className="h-6 px-2 font-semibold text-white transition rounded bg-fuchsia-400 hover:bg-fuchsia-600 sm:hover:scale-105 sm:hover:-rotate-2"
                   >
                     {t`gif.send`}
                   </button>
@@ -122,19 +122,28 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
               </div>
             )}
             <form onSubmit={submitForm}>
-              <div className="flex justify-end gap-5 sm:gap-3">
+              <div className="flex justify-end gap-2 sm:gap-3">
                 <input
                   type="text"
                   value={input}
                   placeholder={t`gif.placeholder`}
                   onChange={(e) => setInput(e.target.value)}
-                  className="w-full sm:w-[170px] h-6 px-2 text-xs border border-gray-300 rounded-md focus:ring-fuchsia-300 focus:border-fuchsia-200 focus:ring-1 focus:ring-offset-1 focus:outline-none sm:text-sm"
+                  className="w-full sm:w-[170px] h-6 px-2 border border-gray-300 rounded-md focus:ring-fuchsia-300 focus:border-fuchsia-200 focus:ring-1 focus:ring-offset-1 focus:outline-none"
                 />
+                <select
+                  name="reactLang"
+                  value={inputLang}
+                  onChange={(e) => setInputLang(e.target.value)}
+                  className="h-6 px-2 text-xs font-bold text-gray-600 bg-gray-200 border border-gray-300 rounded-md appearance-none sm:text-sm cursor-pointer"
+                >
+                  <option value="de">DE</option>
+                  <option value="en">EN</option>
+                </select>
                 <button
                   type="submit"
                   className={
                     (currentGif ? "" : "mr-2 ") +
-                    "h-6 px-2 text-xs font-semibold text-white transition bg-pink-400 rounded hover:bg-pink-600 sm:hover:scale-105 sm:hover:rotate-2 sm:text-sm sm:mr-0"
+                    "h-6 px-2 font-semibold text-white transition bg-pink-400 rounded hover:bg-pink-600 sm:hover:scale-105 sm:hover:rotate-2 sm:mr-0"
                   }
                 >
                   {t`gif.submit`}

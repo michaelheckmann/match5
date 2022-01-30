@@ -2,9 +2,10 @@ export default async function handler(req, res) {
   const params = new URLSearchParams({
     key: process.env.TENOR_API_KEY,
     q: req.body.query,
+    locale: req.body.locale,
     media_filter: "minimal",
     contentfilter: "medium",
-    limit: 10,
+    limit: 15,
   });
 
   try {

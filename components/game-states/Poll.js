@@ -200,10 +200,10 @@ export default function Poll({
                   key={inputSet}
                   className="flex justify-start flex-col sm:justify-center items-center sm:p-4 sm:min-h-[400px] w-full sm:max-w-[700px] text-gray-700 sm:bg-slate-100 sm:border border-slate-300 sm:rounded-lg sm:shadow-lg divide-y divide-slate-400 divide-dashed sm:divide-y-0"
                 >
-                  <div className="grid w-full grid-cols-4">
-                    <div className=""></div>
+                  <div className="grid w-full grid-cols-4 grid-rows-2 sm:grid-rows-none sm:mb-0 mb-7">
+                    <div className="order-1 hidden sm:block"></div>
                     {/* Categories */}
-                    <div className="flex items-center justify-center w-full col-span-2 gap-5 mt-2 mb-10">
+                    <div className="flex items-center justify-center order-last w-full col-span-4 gap-5 mt-2 mb-3 sm:mb-10 sm:col-span-2 sm:order-2">
                       <div
                         className={
                           catColorMap[colorNumberMap[combinations[i][0]]] +
@@ -233,9 +233,9 @@ export default function Poll({
                     </div>
 
                     {/* Combination */}
-                    <div className="[place-self:start_end] font-mono text-xs mt-2 text-right font-medium tracking-tight">
+                    <div className="sm:[place-self:start_end] col-span-4 sm:col-span-1 font-mono text-xs mt-2 text-right font-medium tracking-tight order-first sm:order-3 flex justify-end items-center gap-1 sm:block">
                       <span className="font-medium">{t`c-poll.combinations`}</span>
-                      <br />
+                      <br className="hidden sm:block" />
                       {`${i + 1}/10`}
                     </div>
                   </div>

@@ -46,6 +46,17 @@
   appearance: none;
   min-width: 140px;
 }
+.select-triangle-reaction {
+  background-image: url(http://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/br_down.png);
+  background-repeat: no-repeat;
+  background-position: right 10px top 7px; /* Change the px value here to change the distance */
+  background-size: 10px;
+  -moz-appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 60px;
+}
 
 .h-screen-custom {
   height: calc(var(--vh) * 100);

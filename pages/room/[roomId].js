@@ -214,14 +214,15 @@ export default function Room({
             </div>
           </div>
           <div className="flex items-center justify-center p-3 bg-gray-200 rounded-lg">
-            <Image
-              src={gifData.gif.url}
-              alt={gifData.gif.description}
-              width={200}
-              height={150}
-              objectFit="contain"
-              className="rounded-lg"
-            />
+            <div className="relative h-20 w-24 sm:h-40 overflow-hidden sm:w-52 rouned-lg">
+              <Image
+                src={gifData.gif.url}
+                alt={gifData.gif.description}
+                layout="fill"
+                objectFit="contain"
+                className="rounded-lg"
+              />
+            </div>
           </div>
         </div>
       );
