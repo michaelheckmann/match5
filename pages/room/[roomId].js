@@ -144,7 +144,7 @@ export default function Room({
           if (categoriesSetData.categories.length === 0) return;
 
           return showToast(
-            t(`not.info.host-changed`, { p: categoriesSetData.userName }),
+            t(`not.info.categories-set`, { p: categoriesSetData.userName }),
             "default",
             3000
           );
@@ -154,7 +154,7 @@ export default function Room({
           if (categoriesSetData.categories.length === 0) return;
 
           return showToast(
-            t(`not.info.host-changed`, { p: categoriesSetData.userName }),
+            t(`not.info.categories-set`, { p: categoriesSetData.userName }),
             "default",
             3000
           );
@@ -214,7 +214,7 @@ export default function Room({
             </div>
           </div>
           <div className="flex items-center justify-center p-3 bg-gray-200 rounded-lg">
-            <div className="relative h-20 w-24 sm:h-40 overflow-hidden sm:w-52 rouned-lg">
+            <div className="relative w-24 h-20 overflow-hidden sm:h-40 sm:w-52 rouned-lg">
               <Image
                 src={gifData.gif.url}
                 alt={gifData.gif.description}
