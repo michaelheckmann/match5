@@ -31,7 +31,7 @@ export async function middleware(req, ev) {
     }
   });
 
-  if (pathname !== "/login") {
+  if (!pathname.includes("/login")) {
     // Check if the user has entered the correct password
     if (password !== process.env.PASSWORD) {
       return NextResponse.redirect("/login");
