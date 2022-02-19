@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  @apply bg-gray-100;
+}
+
 .spinner {
   animation: rotate 2s linear infinite;
   width: 50px;

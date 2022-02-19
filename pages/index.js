@@ -22,13 +22,13 @@ import { animalNames } from "../utilities/constants";
 import makeRequest from "../utilities/request";
 import LanguageSelector from "../components/LanguageSelector";
 
-import { blurScene } from "../public/blur-scene";
+import sceneMobile from "../public/scene-mobile.jpg";
+import sceneDesktop from "../public/scene-desktop.jpg";
 
 // Anchor the modal, element set in _app.js
 Modal.setAppElement("#modal-root");
 
-export default function Home() {
-  // {isMobile}
+export default function Home({ isMobile }) {
   const { t } = useTranslation("home");
 
   const [playerName, setPlayerName] = useState("");
@@ -183,14 +183,16 @@ export default function Home() {
           </>
         )} */}
         <div className="absolute inset-0 z-[8] w-full h-full">
-          <Image
-            alt="Match 5 Scene"
-            src="/scene-min.png"
-            layout="fill"
-            objectFit="cover"
-            placeholder="blur"
-            blurDataURL={blurScene}
-          />
+          <div className="absolute -top-16 w-full h-full">
+            <Image
+              alt="Match 5 Scene"
+              src={isMobile ? sceneMobile : sceneDesktop}
+              layout="fill"
+              objectFit="cover"
+              placeholder="blur"
+              priority
+            />
+          </div>
         </div>
         <div className="relative z-10 flex items-center justify-center w-screen overflow-x-hidden text-gray-700 h-screen-custom">
           <div className="w-full">
@@ -387,15 +389,15 @@ export default function Home() {
     </div>
   );
 }
-// export async function getServerSideProps(context) {
-//   const isMobile = (
-//     context.req ? context.req.headers["user-agent"] : navigator.userAgent
-//   ).match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i);
+export async function getServerSideProps(context) {
+  const isMobile = (
+    context.req ? context.req.headers["user-agent"] : navigator.userAgent
+  ).match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i);
 
-//   // will be passed to the page component as props
-//   return {
-//     props: {
-//       isMobile,
-//     },
-//   };
-// }
+  // will be passed to the page component as props
+  return {
+    props: {
+      isMobile,
+    },
+  };
+}
