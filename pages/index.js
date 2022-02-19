@@ -1,5 +1,9 @@
+// import { motion } from "framer-motion";
+// import Script from "next/script";
+
 import { useState } from "react";
 
+import Image from "next/image";
 import Head from "next/head";
 import Router from "next/router";
 import useTranslation from "next-translate/useTranslation";
@@ -7,7 +11,6 @@ import useTranslation from "next-translate/useTranslation";
 import Cookies from "universal-cookie";
 
 import Modal from "react-modal";
-import { motion } from "framer-motion";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,10 +22,13 @@ import { animalNames } from "../utilities/constants";
 import makeRequest from "../utilities/request";
 import LanguageSelector from "../components/LanguageSelector";
 
+import { blurScene } from "../public/blur-scene";
+
 // Anchor the modal, element set in _app.js
 Modal.setAppElement("#modal-root");
 
 export default function Home() {
+  // {isMobile}
   const { t } = useTranslation("home");
 
   const [playerName, setPlayerName] = useState("");
@@ -164,13 +170,34 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="absolute inset-0">
-        <div className="relative flex items-center justify-center w-screen overflow-x-hidden text-gray-700 bg-gray-100 h-screen-custom">
+      <div className="absolute inset-0 bg-gray-100">
+        {/*   {!isMobile && (
+          <>
+            <Script strategy="lazyOnload" type="module">
+              {`import {Application} from '/runtime.js'; const app = new Application(); app.load('/scene.json');`}
+            </Script>
+            <canvas
+              id="canvas3d"
+              className="absolute inset-0 z-[9] w-full h-full"
+            ></canvas>
+          </>
+        )} */}
+        <div className="absolute inset-0 z-[8] w-full h-full">
+          <Image
+            alt="Match 5 Scene"
+            src="/scene-min.png"
+            layout="fill"
+            objectFit="cover"
+            placeholder="blur"
+            blurDataURL={blurScene}
+          />
+        </div>
+        <div className="relative z-10 flex items-center justify-center w-screen overflow-x-hidden text-gray-700 h-screen-custom">
           <div className="w-full">
-            <h1 className="absolute top-28 sm:top-32 left-1/2 -ml-[200px] w-[400px] font-bold text-2xl sm:text-3xl text-center text-fuchsia-600 z-10">
+            {/* <h1 className="absolute top-40 sm:top-32 left-1/2 -ml-[200px] w-[400px] font-bold text-3xl sm:text-3xl text-center text-fuchsia-600 z-10">
               {t`title`}
-            </h1>
-            <motion.div
+            </h1> */}
+            {/* <motion.div
               animate={{ rotate: 360, opacity: [0.5, 1, 0.5] }}
               transition={{ repeat: 1, duration: 20, ease: "linear" }}
               className="absolute z-0 -translate-x-3 -top-12 sm:top-0 left-1/2 -ml-[150px] w-[300px] scale-75 sm:scale-100 bg-transparent"
@@ -195,7 +222,7 @@ export default function Home() {
                   transform="translate(100 90)"
                 />
               </svg>
-            </motion.div>
+            </motion.div> */}
             <Loading isLoading={isLoading} />
             {!isLoading && (
               <div className="flex flex-col items-center justify-center gap-10 px-4 mt-10 sm:flex-row sm:mt-0">
@@ -360,3 +387,15 @@ export default function Home() {
     </div>
   );
 }
+// export async function getServerSideProps(context) {
+//   const isMobile = (
+//     context.req ? context.req.headers["user-agent"] : navigator.userAgent
+//   ).match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i);
+
+//   // will be passed to the page component as props
+//   return {
+//     props: {
+//       isMobile,
+//     },
+//   };
+// }
