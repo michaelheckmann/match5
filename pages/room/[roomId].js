@@ -215,18 +215,19 @@ export default function Room({
           </div>
           <div className="flex items-center justify-center p-3 bg-gray-200 rounded-lg">
             <div className="relative w-24 h-20 overflow-hidden sm:h-40 sm:w-52 rouned-lg">
-              <Image
-                src={gifData.gif.url}
-                alt={gifData.gif.description}
-                layout="fill"
-                objectFit="contain"
-                className="rounded-lg"
-              />
+              <video
+                loop
+                autoPlay
+                muted
+                className="object-contain w-full h-full rounded-lg"
+              >
+                <source src={gifData.gif.url} type="video/mp4" />
+              </video>
             </div>
           </div>
         </div>
       );
-      showToast(Msg, "gif", 5000);
+      showToast(Msg, "gif", 10000);
     });
 
     channel.bind("pollSubmitted", (userName) => {

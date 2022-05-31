@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import makeRequest from "../utilities/request";
 import useClickOutside from "../utilities/useClickOutside";
 
+import debounce from "lodash.debounce";
+
 export default function Reaction({ userName, roomName, roomRefId, t }) {
   const wrapperRef = useRef(null);
   useClickOutside(wrapperRef, closeInput);
@@ -14,29 +16,17 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [inputLang, setInputLang] = useState("en");
-  const [currentGif, setCurrentGif] = useState("");
   const [gifs, setGifs] = useState([]);
   const [currenGifIndex, setCurrenGifIndex] = useState(0);
-
-  async function submitForm(e) {
-    e.preventDefault();
-    const res = await makeRequest(
-      "notification/fetchGIF",
-      { query: input, locale: inputLang },
-      true
-    );
-    const gifs = res.results.map((g) => {
-      return { description: g.content_description, url: g.media[0].gif.url };
-    });
-    setGifs(gifs);
-    setCurrenGifIndex(0);
-  }
 
   const handleKeyPress = useCallback(
     (e) => {
       if (e.metaKey && e.key === "k") isOpen ? closeInput() : setIsOpen(true);
+      if (e.metaKey && e.key === "ArrowRight") setCurrenGifIndex((i) => i + 1);
+      if (e.metaKey && e.key === "ArrowLeft") setCurrenGifIndex((i) => i - 1);
+      if (e.metaKey && e.key === "Enter") sendGIF();
     },
-    [isOpen]
+    [isOpen, currenGifIndex, sendGIF]
   );
 
   useEffect(() => {
@@ -46,11 +36,6 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
     };
   }, [handleKeyPress]);
 
-  useEffect(
-    () => setCurrentGif(gifs[currenGifIndex % 10]),
-    [gifs, currenGifIndex]
-  );
-
   function closeInput() {
     setIsOpen(false);
     setGifs([]);
@@ -58,9 +43,35 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
     setInput("");
   }
 
-  function sendGIF() {
-    makeRequest("notification/sendGIF", {
-      gif: currentGif,
+  const debounceInput = useCallback(
+    debounce(async (debouncedInput) => {
+      const res = await makeRequest(
+        "notification/fetchGIF",
+        { query: debouncedInput, locale: inputLang },
+        true
+      );
+      const gifs = res.results.map((g) => {
+        return {
+          description: g.content_description,
+          url: g.media[0].tinymp4.url,
+        };
+      });
+      setGifs(gifs);
+      setCurrenGifIndex(0);
+    }, 500),
+    []
+  );
+
+  useEffect(() => debounceInput(input), [input]);
+  useEffect(() => {
+    return () => {
+      debounceInput.cancel();
+    };
+  }, []);
+
+  async function sendGIF() {
+    await makeRequest("notification/sendGIF", {
+      gif: gifs[currenGifIndex % gifs.length],
       userName: userName,
       roomName: roomName,
     });
@@ -94,16 +105,22 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
       {isOpen && (
         <div>
           <div className="relative p-4 bg-white rounded-lg shadow-lg">
-            {currentGif && (
+            {gifs.length > 0 && (
               <div className="flex gap-5 mb-4 sm:mb-2 sm:gap-3">
                 <div className="p-2 bg-gray-100 rounded-lg w-full sm:w-[170px] flex justify-center items-center">
-                  <Image
-                    src={currentGif.url}
-                    alt={currentGif.description}
-                    width={150}
-                    height={100}
-                    objectFit="contain"
-                  />
+                  {gifs.map(
+                    (gif, i) =>
+                      i === currenGifIndex % gifs.length && (
+                        <video
+                          key={gif.url}
+                          loop
+                          autoPlay
+                          muted
+                          src={gif.url}
+                          className="w-40 h-28"
+                        ></video>
+                      )
+                  )}
                 </div>
                 <div className="flex flex-col items-end justify-end gap-4 ml-auto sm:gap-2">
                   <button
@@ -121,37 +138,28 @@ export default function Reaction({ userName, roomName, roomRefId, t }) {
                 </div>
               </div>
             )}
-            <form onSubmit={submitForm}>
-              <div className="flex justify-end gap-2 sm:gap-3">
-                <input
-                  type="text"
-                  value={input}
-                  placeholder={t`gif.placeholder`}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="w-full sm:w-[170px] h-6 px-2 border border-gray-300 rounded-md focus:ring-fuchsia-300 focus:border-fuchsia-200 focus:ring-1 focus:ring-offset-1 focus:outline-none"
-                />
-                <select
-                  name="reactLang"
-                  value={inputLang}
-                  onChange={(e) => setInputLang(e.target.value)}
-                  className="h-6 px-2 text-xs font-bold text-gray-600 bg-gray-200 border border-gray-300 rounded-md appearance-none sm:text-sm cursor-pointer"
-                >
-                  <option value="de">DE</option>
-                  <option value="en">EN</option>
-                </select>
-                <button
-                  type="submit"
-                  className={
-                    (currentGif ? "" : "mr-2 ") +
-                    "h-6 px-2 font-semibold text-white transition bg-pink-400 rounded hover:bg-pink-600 sm:hover:scale-105 sm:hover:rotate-2 sm:mr-0"
-                  }
-                >
-                  {t`gif.submit`}
-                </button>
-              </div>
-            </form>
+            <div className="flex justify-end gap-2 sm:gap-3">
+              <input
+                type="text"
+                autoFocus
+                value={input}
+                placeholder={t`gif.placeholder`}
+                onChange={(e) => setInput(e.target.value)}
+                className="w-full h-6 px-2 border border-gray-300 rounded-md focus:ring-fuchsia-300 focus:border-fuchsia-200 focus:ring-1 focus:ring-offset-1 focus:outline-none"
+              />
+              <select
+                name="reactLang"
+                value={inputLang}
+                onChange={(e) => setInputLang(e.target.value)}
+                className="h-6 px-2 text-xs font-bold text-gray-600 bg-gray-200 border border-gray-300 rounded-md appearance-none cursor-pointer sm:text-sm"
+              >
+                <option value="de">DE</option>
+                <option value="en">EN</option>
+              </select>
+            </div>
             <button
               onClick={closeInput}
+              type="button"
               className="absolute flex items-center justify-center w-8 h-8 text-sm text-gray-600 bg-white border border-gray-200 rounded-full -top-3 sm:text-baseline -right-3"
             >
               <div className="w-[30px] h-[30px] flex items-center justify-center pb-[2.8px] text-[15px] leading-[30px]">

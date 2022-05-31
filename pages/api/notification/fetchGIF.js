@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     key: process.env.TENOR_API_KEY,
     q: req.body.query,
     locale: req.body.locale,
-    media_filter: "minimal",
+    media_filter: "basic",
     contentfilter: "medium",
     limit: 15,
   });

@@ -183,15 +183,26 @@ export default function Home({ isMobile }) {
           </>
         )} */}
         <div className="absolute inset-0 z-[8] w-full h-full">
-          <div className="absolute -top-16 w-full h-full">
-            <Image
-              alt="Match 5 Scene"
-              src={isMobile ? sceneMobile : sceneDesktop}
-              layout="fill"
-              objectFit="cover"
-              placeholder="blur"
-              priority
-            />
+          <div className="absolute w-full h-full -top-16">
+            {isMobile ? (
+              <Image
+                alt="Match 5 Scene"
+                src={sceneMobile}
+                layout="fill"
+                objectFit="cover"
+                placeholder="blur"
+                priority
+              />
+            ) : (
+              <Image
+                alt="Match 5 Scene"
+                src={sceneDesktop}
+                layout="fill"
+                objectFit="cover"
+                placeholder="blur"
+                priority
+              />
+            )}
           </div>
         </div>
         <div className="relative z-10 flex items-center justify-center w-screen overflow-x-hidden text-gray-700 h-screen-custom">
