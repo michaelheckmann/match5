@@ -1,3 +1,11 @@
+<p align="center">
+<img src="match1.png" width="700">
+</p>
+<p float="left" align="middle">
+<img src="match2.png" width="305">
+<img src="match3.png" width="395">
+</p>
+
 # Match5 👾🎨
 Digital version of the party game [Match5](https://boardgamegeek.com/boardgame/306169/match-5). Powered by NextJS, TailwindCSS and Pusher.
 
